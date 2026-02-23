@@ -1,0 +1,4619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Operations Performance Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1e3c72;
+            --secondary-color: #2a5298;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --quantity-color: #3F51B5;
+            --quality-color: #009688;
+            --ideas-color: #9C27B0;
+            --feedback-color: #FF9800;
+            --manager-color: #FFC107;
+            --executive-color: #2196F3;
+            --reporting-color: #9C27B0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        /* LOGIN PAGE */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+        
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .login-box h1 {
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .login-form .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .login-form input, .login-form select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .login-form button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .login-form button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .login-links {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .login-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .login-links a:hover {
+            text-decoration: underline;
+        }
+        
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: none;
+        }
+        
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px 30px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .user-details h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .user-details .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .role-badge.bop-manager {
+            background: var(--manager-color);
+            color: #333;
+        }
+        
+        .role-badge.bop-executive {
+            background: var(--executive-color);
+            color: white;
+        }
+        
+        .role-badge.reporting-manager {
+            background: var(--reporting-color);
+            color: white;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* 4 MAIN MEASURES */
+        .dashboard-summary {
+            padding: 25px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .four-measures {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .measure-card {
+            padding: 25px;
+            border-radius: 10px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .measure-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .measure-card.quantity { background: linear-gradient(135deg, var(--quantity-color) 0%, #5C6BC0 100%); }
+        .measure-card.quality { background: linear-gradient(135deg, var(--quality-color) 0%, #26A69A 100%); }
+        .measure-card.ideas { background: linear-gradient(135deg, var(--ideas-color) 0%, #AB47BC 100%); }
+        .measure-card.feedback { background: linear-gradient(135deg, var(--feedback-color) 0%, #FFB74D 100%); }
+        
+        .measure-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        
+        .measure-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .measure-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .measure-progress {
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .measure-fill {
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+        }
+        
+        /* DETAILED METRICS */
+        .metrics-container {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 25px;
+        }
+        
+        .overall-score {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e1e6ff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .score-value {
+            font-size: 52px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+        
+        .stars {
+            color: #ffc107;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .performance-level {
+            display: inline-block;
+            padding: 6px 15px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-top: 4px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-card.timeliness { border-color: #2196F3; }
+        .metric-card.accuracy { border-color: #FF9800; }
+        .metric-card.efficiency { border-color: #3F51B5; }
+        .metric-card.proactivity { border-color: #E91E63; }
+        .metric-card.reports { border-color: #4CAF50; }
+        .metric-card.automation { border-color: #9C27B0; }
+        .metric-card.dashboards { border-color: #00BCD4; }
+        .metric-card.templates { border-color: #795548; }
+        
+        .metric-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .metric-name {
+            font-weight: 600;
+            color: #555;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .metric-target {
+            font-size: 13px;
+            color: #777;
+        }
+        
+        /* TABS */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eaeaea;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 18px 25px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab:hover {
+            color: var(--primary-color);
+            background: rgba(30, 60, 114, 0.05);
+        }
+        
+        .tab.active {
+            color: var(--primary-color);
+            background: white;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .tab-content {
+            padding: 30px;
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* FORMS */
+        .data-form {
+            background: #f9f9ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #e1e6ff;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        input, select, textarea {
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* BUTTONS */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
+        }
+        
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+        
+        .btn-small {
+            padding: 5px 12px;
+            font-size: 13px;
+        }
+        
+        .btn-edit {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #138496;
+        }
+        
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-approve:hover {
+            background: #218838;
+        }
+        
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background: #c82333;
+        }
+        
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        /* STATUS BADGES */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-pending { background: #fff3e0; color: #ef6c00; }
+        .status-approved { background: #e8f5e9; color: #2e7d32; }
+        .status-rejected { background: #ffebee; color: #c62828; }
+        .status-implemented { background: #e3f2fd; color: #1565c0; }
+        
+        .badge-silver {
+            background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .badge-gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #333;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        /* TEAM PERFORMANCE VIEW */
+        .team-members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .team-member-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .team-member-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .team-member-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .team-member-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .team-member-info h3 {
+            margin-bottom: 5px;
+        }
+        
+        .team-member-score {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .team-member-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* FILTERS */
+        .filters-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .four-measures {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .metrics-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .four-measures {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .team-members-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                overflow-x: auto;
+            }
+            
+            .tab {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+        }
+        
+        /* GitHub Status Styles */
+        .github-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-connected {
+            background: rgba(46, 125, 50, 0.1);
+            color: #2e7d32;
+            border: 1px solid rgba(46, 125, 50, 0.3);
+        }
+        
+        .status-disconnected {
+            background: rgba(239, 108, 0, 0.1);
+            color: #ef6c00;
+            border: 1px solid rgba(239, 108, 0, 0.3);
+        }
+        
+        .github-config {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e1e6ff;
+            margin: 20px 0;
+        }
+        
+        .token-input {
+            font-family: monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <h1><i class="fas fa-chart-network"></i> BOP Performance Dashboard</h1>
+            <p style="color: #666; margin-bottom: 20px;">Business Operations Department</p>
+            
+            <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="your.email@company.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit">Sign In</button>
+            </form>
+            
+            <div class="login-links">
+                <a onclick="showSampleAccounts()">View Sample Accounts</a>
+                <a onclick="showGithubSetupGuide()">Setup Free Cloud Sync</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MAIN DASHBOARD -->
+    <div class="container" id="mainDashboard">
+        <!-- HEADER -->
+        <header>
+            <div class="header-top">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">JD</div>
+                    <div class="user-details">
+                        <h3 id="userName">John Doe</h3>
+                        <span class="role-badge bop-executive" id="userRole">BOP Executive</span>
+                        <span id="githubStatus" class="github-status status-disconnected" style="display: none;">
+                            <i class="fab fa-github"></i> GitHub: Not Connected
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <!-- GitHub Cloud Sync Buttons -->
+                    <button class="logout-btn" onclick="saveToGithub()" id="saveToGithubBtn" title="Save to GitHub Cloud (Free)" disabled>
+                        <i class="fab fa-github"></i> Save to Cloud
+                    </button>
+                    <button class="logout-btn" onclick="loadFromGithub()" id="loadFromGithubBtn" title="Load from GitHub Cloud" disabled>
+                        <i class="fab fa-github"></i> Load from Cloud
+                    </button>
+                    
+                    <!-- Original Export/Import -->
+                    <button class="logout-btn" onclick="exportAllData()" title="Save all data to file">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="logout-btn" onclick="importAllData()" title="Load data from file">
+                        <i class="fas fa-upload"></i> Import
+                    </button>
+                    
+                    <button class="logout-btn" onclick="showGithubConfigModal()" title="GitHub Cloud Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- TEAM FILTERS (Manager Only) -->
+            <div class="filters-container" id="teamFilters" style="display: none;">
+                <div class="filter-group">
+                    <label>Team Member</label>
+                    <select id="memberFilter" onchange="filterDashboardByMember()">
+                        <option value="all">All Team Members</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Time Period</label>
+                    <select id="timeFilter" onchange="filterDashboardByMember()">
+                        <option value="all">All Time</option>
+                        <option value="month">This Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="year">This Year</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-small" onclick="resetDashboardFilter()">
+                    <i class="fas fa-sync-alt"></i> Reset
+                </button>
+            </div>
+        </header>
+        
+        <!-- 4 MAIN MEASURES -->
+        <div class="dashboard-summary">
+            <div class="four-measures">
+                <div class="measure-card quantity" onclick="switchTab('quantity')">
+                    <div class="measure-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="measure-value" id="quantityScore">0%</div>
+                    <div class="measure-label">QUANTITY</div>
+                    <div class="measure-progress">
+                        <div class="measure-fill" id="quantityFill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="measure-card quality" onclick="switchTab('quality')">
+                    <div class="measure-icon"><i class="fas fa-check-double"></i></div>
+                    <div class="measure-value" id="qualityScore">0%</div>
+                    <div class="measure-label">QUALITY</div>
+                    <div class="measure-progress">
+                        <div class="measure-fill" id="qualityFill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="measure-card ideas" onclick="switchTab('ideas')">
+                    <div class="measure-icon"><i class="fas fa-lightbulb"></i></div>
+                    <div class="measure-value" id="ideasScore">0%</div>
+                    <div class="measure-label">IDEAS & INNOVATION</div>
+                    <div class="measure-progress">
+                        <div class="measure-fill" id="ideasFill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="measure-card feedback" onclick="switchTab('feedback')">
+                    <div class="measure-icon"><i class="fas fa-star"></i></div>
+                    <div class="measure-value" id="feedbackScore">0%</div>
+                    <div class="measure-label">FEEDBACK & COLLABORATION</div>
+                    <div class="measure-progress">
+                        <div class="measure-fill" id="feedbackFill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- DETAILED METRICS -->
+            <div class="metrics-container">
+                <div class="overall-score">
+                    <h3>Overall Performance</h3>
+                    <div class="score-value" id="overallScore">0.0</div>
+                    <div class="stars" id="starRating">
+                        <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                        <i class="far fa-star"></i><i class="far fa-star"></i>
+                    </div>
+                    <div class="performance-level" id="performanceLevel">No Data</div>
+                    <div style="margin-top: 15px; font-size: 14px; color: #666;">
+                        <div><i class="fas fa-calendar-alt"></i> <span id="currentPeriod">Current Period</span></div>
+                        <div><i class="fas fa-trophy"></i> Rank: <span id="userRank">N/A</span></div>
+                    </div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card reports">
+                        <div class="metric-title">
+                            <span class="metric-name"><i class="fas fa-file-alt"></i> Reports</span>
+                            <span class="status-badge" id="reportsStatus">0</span>
+                        </div>
+                        <div class="metric-value" id="reportsValue">0</div>
+                        <div class="metric-target">Target: 3/Month</div>
+                    </div>
+                    
+                    <div class="metric-card automation">
+                        <div class="metric-title">
+                            <span class="metric-name"><i class="fas fa-robot"></i> Automation</span>
+                            <span class="status-badge" id="automationStatus">0</span>
+                        </div>
+                        <div class="metric-value" id="automationValue">0</div>
+                        <div class="metric-target">Hours Saved: <span id="hoursSaved">0</span></div>
+                    </div>
+                    
+                    <div class="metric-card dashboards">
+                        <div class="metric-title">
+                            <span class="metric-name"><i class="fas fa-tachometer-alt"></i> Dashboards</span>
+                            <span class="status-badge" id="dashboardsStatus">0</span>
+                        </div>
+                        <div class="metric-value" id="dashboardsValue">0</div>
+                        <div class="metric-target">Projects Completed</div>
+                    </div>
+                    
+                    <div class="metric-card templates">
+                        <div class="metric-title">
+                            <span class="metric-name"><i class="fas fa-layer-group"></i> Templates</span>
+                            <span class="status-badge" id="templatesStatus">0</span>
+                        </div>
+                        <div class="metric-value" id="templatesValue">0</div>
+                        <div class="metric-target">Reusable Assets</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('quantity')">
+                <i class="fas fa-chart-bar"></i> Quantity
+            </button>
+            <button class="tab" onclick="switchTab('quality')">
+                <i class="fas fa-check-double"></i> Quality
+            </button>
+            <button class="tab" onclick="switchTab('ideas')">
+                <i class="fas fa-lightbulb"></i> Ideas & Innovation
+            </button>
+            <button class="tab" onclick="switchTab('feedback')">
+                <i class="fas fa-star"></i> Feedback
+            </button>
+            <button class="tab" onclick="switchTab('team')" id="teamTab">
+                <i class="fas fa-users"></i> Team Performance
+            </button>
+            <button class="tab" onclick="switchTab('team-management')" id="teamManagementTab" style="display: none;">
+                <i class="fas fa-user-plus"></i> Team Management
+            </button>
+        </div>
+        
+        <!-- TAB CONTENT AREAS -->
+        <div id="tabContents">
+            <!-- Quantity Tab -->
+            <div class="tab-content active" id="quantity">
+                <!-- Content loaded dynamically -->
+            </div>
+            
+            <!-- Quality Tab -->
+            <div class="tab-content" id="quality">
+                <!-- Content loaded dynamically -->
+            </div>
+            
+            <!-- Ideas Tab -->
+            <div class="tab-content" id="ideas">
+                <!-- Content loaded dynamically -->
+            </div>
+            
+            <!-- Feedback Tab -->
+            <div class="tab-content" id="feedback">
+                <!-- Content loaded dynamically -->
+            </div>
+            
+            <!-- Team Performance Tab -->
+            <div class="tab-content" id="team">
+                <!-- Content loaded dynamically -->
+            </div>
+            
+            <!-- Team Management Tab -->
+            <div class="tab-content" id="team-management">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- EXISTING MODALS (Keep all your existing modals) -->
+    <div class="modal" id="editIdeaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-edit"></i> Review Idea</h3>
+                <button class="modal-close" onclick="closeEditIdeaModal()">&times;</button>
+            </div>
+            <form onsubmit="updateIdeaStatus(event)">
+                <input type="hidden" id="editIdeaId">
+                <div class="form-group">
+                    <label>Idea Title</label>
+                    <input type="text" id="editIdeaTitle" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Submitted By</label>
+                    <input type="text" id="editIdeaAuthor" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Approval Status</label>
+                    <select id="editIdeaStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Implemented">Implemented</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Manager Feedback</label>
+                    <textarea id="editIdeaFeedback" rows="4" placeholder="Provide feedback on this idea..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Status</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="modal" id="memberDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-user"></i> Team Member Details</h3>
+                <button class="modal-close" onclick="closeMemberDetailsModal()">&times;</button>
+            </div>
+            <div id="memberDetailsContent">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Team Member Modal -->
+    <div class="modal" id="addTeamMemberModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-user-plus"></i> Add Team Member</h3>
+                <button class="modal-close" onclick="closeAddTeamMemberModal()">&times;</button>
+            </div>
+            <form onsubmit="addNewTeamMember(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="newMemberName" placeholder="e.g., Ahmed Khalid" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="newMemberEmail" placeholder="ahmed@company.com" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Role *</label>
+                        <select id="newMemberRole" required>
+                            <option value="">Select Role</option>
+                            <option value="bop-executive">BOP Executive</option>
+                            <option value="bop-manager">BOP Manager</option>
+                            <option value="reporting-manager">Reporting Manager</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="newMemberDepartment" value="Business Operations">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password *</label>
+                        <input type="password" id="newMemberPassword" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password *</label>
+                        <input type="password" id="newMemberConfirmPassword" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="newMemberStatus">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Team Member</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Team Member Modal -->
+    <div class="modal" id="editTeamMemberModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-edit"></i> Edit Team Member</h3>
+                <button class="modal-close" onclick="closeEditTeamMemberModal()">&times;</button>
+            </div>
+            <form onsubmit="updateTeamMember(event)">
+                <input type="hidden" id="editMemberId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="editMemberName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="editMemberEmail" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Role *</label>
+                        <select id="editMemberRole" required>
+                            <option value="bop-executive">BOP Executive</option>
+                            <option value="bop-manager">BOP Manager</option>
+                            <option value="reporting-manager">Reporting Manager</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="editMemberDepartment">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editMemberStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reset Password (leave blank to keep current)</label>
+                    <input type="password" id="editMemberPassword" placeholder="New password...">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Team Member</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- GitHub Configuration Modal -->
+    <div class="modal" id="githubConfigModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fab fa-github"></i> Free Cloud Sync Setup</h3>
+                <button class="modal-close" onclick="closeGithubConfig()">&times;</button>
+            </div>
+            
+            <div class="github-config">
+                <h4><i class="fas fa-cloud"></i> Sync with GitHub (100% Free)</h4>
+                <p style="margin-bottom: 15px; color: #666;">
+                    Store your dashboard data on GitHub Gists. All laptops can sync automatically.
+                </p>
+                
+                <div class="form-group">
+                    <label>GitHub Personal Access Token *</label>
+                    <input type="password" id="githubToken" class="token-input" 
+                           placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                    <small style="color: #666;">
+                        Get token from: <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a><br>
+                        Select only: <code>gist</code> scope
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Gist ID (Optional)</label>
+                    <input type="text" id="gistId" class="token-input" 
+                           placeholder="Leave empty to create new">
+                    <small style="color: #666;">
+                        If sharing with team, use same Gist ID on all laptops
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Auto Save</label>
+                    <select id="syncFrequency">
+                        <option value="manual">Manual Only</option>
+                        <option value="5">Every 5 minutes</option>
+                        <option value="15">Every 15 minutes</option>
+                        <option value="60">Every hour</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" onclick="saveGithubConfig()" style="width: 100%; margin-top: 15px;">
+                    <i class="fas fa-save"></i> Save Configuration
+                </button>
+                
+                <div id="configStatus" style="margin-top: 15px; padding: 10px; border-radius: 6px; display: none;"></div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px;">
+                <h4><i class="fas fa-question-circle"></i> Setup Instructions:</h4>
+                <ol style="margin-left: 20px; color: #555;">
+                    <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Tokens</a></li>
+                    <li>Click "Generate new token" → "Generate new token (classic)"</li>
+                    <li>Name: "BOP Dashboard Sync"</li>
+                    <li>Expiration: 90 days (recommended)</li>
+                    <li>Select ONLY: <strong>gist</strong> scope ✓</li>
+                    <li>Click "Generate token"</li>
+                    <li>Copy token (starts with ghp_)</li>
+                    <li>Paste above and save</li>
+                </ol>
+                <p style="margin-top: 10px; font-size: 12px; color: #777;">
+                    <i class="fas fa-shield-alt"></i> Token stored locally only. 100% free forever.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for data import -->
+    <input type="file" id="dataImportFile" accept=".json" style="display:none">
+
+    <script>
+        // ================ GITHUB GIST CONFIGURATION ================
+        const GITHUB_CONFIG_KEY = 'bop_github_config';
+        let githubConfig = {
+            token: '',
+            gistId: '',
+            syncFrequency: 'manual',
+            lastSync: null
+        };
+        
+        let syncInterval = null;
+        
+        // ================ GLOBAL VARIABLES ================
+        const STORAGE_KEYS = {
+            USERS: 'bop_dashboard_users',
+            CURRENT_USER: 'bop_dashboard_current_user',
+            WORK_ITEMS: 'bop_dashboard_work_items',
+            QUALITY_DATA: 'bop_dashboard_quality_data',
+            IDEAS_DATA: 'bop_dashboard_ideas_data',
+            FEEDBACK_DATA: 'bop_dashboard_feedback_data'
+        };
+        
+        let currentUser = null;
+        let allUsers = [];
+        let workItems = [];
+        let qualityData = [];
+        let ideasData = [];
+        let feedbackData = [];
+        let selectedMemberId = 'all'; // For manager filtering
+        
+        // ================ INITIALIZATION ================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("BOP Dashboard initialized!");
+            
+            // Load GitHub config
+            loadGithubConfig();
+            
+            // Initialize default data
+            initializeDefaultData();
+            
+            // Check if user is already logged in
+            checkLoggedInUser();
+            
+            // Setup import file handler
+            setupImportHandler();
+        });
+        
+        // ================ GITHUB FUNCTIONS ================
+        function loadGithubConfig() {
+            try {
+                const saved = localStorage.getItem(GITHUB_CONFIG_KEY);
+                if (saved) {
+                    githubConfig = JSON.parse(saved);
+                    updateGithubStatus();
+                    
+                    // Start auto-sync if configured
+                    if (githubConfig.syncFrequency !== 'manual' && githubConfig.token) {
+                        startAutoSync(parseInt(githubConfig.syncFrequency));
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading GitHub config:", error);
+            }
+        }
+        
+        function saveGithubConfig() {
+            try {
+                githubConfig.token = document.getElementById('githubToken').value.trim();
+                githubConfig.gistId = document.getElementById('gistId').value.trim();
+                githubConfig.syncFrequency = document.getElementById('syncFrequency').value;
+                
+                localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(githubConfig));
+                
+                // Update status
+                updateGithubStatus();
+                
+                // Start/stop auto-sync
+                if (syncInterval) {
+                    clearInterval(syncInterval);
+                    syncInterval = null;
+                }
+                
+                if (githubConfig.syncFrequency !== 'manual' && githubConfig.token) {
+                    startAutoSync(parseInt(githubConfig.syncFrequency));
+                }
+                
+                // Show success
+                const statusEl = document.getElementById('configStatus');
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#e8f5e9';
+                statusEl.style.color = '#2e7d32';
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Configuration saved!';
+                
+                // Close modal after delay
+                setTimeout(() => {
+                    closeGithubConfig();
+                }, 1500);
+                
+            } catch (error) {
+                console.error("Error saving GitHub config:", error);
+                const statusEl = document.getElementById('configStatus');
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#ffebee';
+                statusEl.style.color = '#c62828';
+                statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error saving configuration';
+            }
+        }
+        
+        function updateGithubStatus() {
+            const statusEl = document.getElementById('githubStatus');
+            if (!statusEl) return;
+            
+            if (githubConfig.token) {
+                statusEl.className = 'github-status status-connected';
+                statusEl.innerHTML = `<i class="fab fa-github"></i> GitHub: Connected`;
+                statusEl.style.display = 'inline-block';
+                
+                // Enable buttons
+                document.getElementById('saveToGithubBtn').disabled = false;
+                document.getElementById('loadFromGithubBtn').disabled = false;
+            } else {
+                statusEl.className = 'github-status status-disconnected';
+                statusEl.innerHTML = '<i class="fab fa-github"></i> GitHub: Not Connected';
+                statusEl.style.display = 'inline-block';
+                
+                // Disable buttons
+                document.getElementById('saveToGithubBtn').disabled = true;
+                document.getElementById('loadFromGithubBtn').disabled = true;
+            }
+        }
+        
+        function startAutoSync(minutes) {
+            if (syncInterval) clearInterval(syncInterval);
+            
+            syncInterval = setInterval(() => {
+                console.log(`Auto-syncing to GitHub...`);
+                saveToGithub(true); // Silent save
+            }, minutes * 60 * 1000);
+            
+            console.log(`Auto-sync started: every ${minutes} minutes`);
+        }
+        
+        // ================ FIXED GITHUB SAVE FUNCTION ================
+        async function saveToGithub(silent = false) {
+            if (!githubConfig.token) {
+                if (!silent) {
+                    showAlert('Please setup GitHub token first! Click the gear icon (⚙️).', 'error');
+                    showGithubConfigModal();
+                }
+                return false;
+            }
+            
+            try {
+                // Show saving indicator
+                if (!silent) {
+                    showAlert('💾 Saving to GitHub Cloud...', 'info');
+                }
+                
+                // Prepare data
+                const allData = {
+                    app: "BOP Performance Dashboard",
+                    version: "2.0",
+                    exportedAt: new Date().toISOString(),
+                    data: {
+                        users: allUsers,
+                        workItems: workItems,
+                        qualityData: qualityData,
+                        ideasData: ideasData,
+                        feedbackData: feedbackData
+                    }
+                };
+                
+                console.log('Saving data to GitHub:', {
+                    users: allUsers.length,
+                    workItems: workItems.length,
+                    qualityData: qualityData.length,
+                    ideasData: ideasData.length,
+                    feedbackData: feedbackData.length
+                });
+                
+                const gistData = {
+                    description: `BOP Dashboard Data - ${new Date().toLocaleString()}`,
+                    public: false,
+                    files: {
+                        "bop-dashboard-data.json": {
+                            content: JSON.stringify(allData, null, 2)
+                        }
+                    }
+                };
+                
+                let response;
+                let isNewGist = false;
+                
+                if (githubConfig.gistId && githubConfig.gistId.trim() !== '') {
+                    // Update existing gist
+                    console.log('Updating existing gist:', githubConfig.gistId);
+                    response = await fetch(`https://api.github.com/gists/${githubConfig.gistId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `Bearer ${githubConfig.token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(gistData)
+                    });
+                } else {
+                    // Create new gist
+                    console.log('Creating new gist...');
+                    response = await fetch('https://api.github.com/gists', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${githubConfig.token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(gistData)
+                    });
+                    isNewGist = true;
+                }
+                
+                const result = await response.json();
+                console.log('GitHub API response:', result);
+                
+                if (response.ok) {
+                    // Update config with new gist ID if created
+                    if (isNewGist && result.id) {
+                        githubConfig.gistId = result.id;
+                        localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(githubConfig));
+                        console.log('New Gist created with ID:', result.id);
+                        
+                        // Update the Gist ID field in modal
+                        if (document.getElementById('gistId')) {
+                            document.getElementById('gistId').value = result.id;
+                        }
+                    }
+                    
+                    githubConfig.lastSync = new Date().toISOString();
+                    localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(githubConfig));
+                    
+                    // Update UI
+                    updateGithubStatus();
+                    
+                    if (!silent) {
+                        const stats = {
+                            users: allUsers.length,
+                            workItems: workItems.length,
+                            ideas: ideasData.length,
+                            feedback: feedbackData.length
+                        };
+                        
+                        const message = `✅ DATA SAVED SUCCESSFULLY!
+
+📊 Statistics Saved:
+• Users: ${stats.users}
+• Work Items: ${stats.workItems}
+• Ideas: ${stats.ideas}
+• Feedback: ${stats.feedback}
+
+${isNewGist ? '🔗 NEW Gist ID: ' + githubConfig.gistId : '🔗 Gist ID: ' + githubConfig.gistId}
+⏰ Time: ${new Date().toLocaleTimeString()}
+
+${isNewGist ? 'IMPORTANT: Share this Gist ID with team members!' : ''}`;
+                        
+                        showAlert(message, 'success');
+                        
+                        // Auto-verify after 2 seconds
+                        setTimeout(() => {
+                            if (confirm('✅ Save successful! Verify the data was saved correctly?')) {
+                                verifyGithubSave();
+                            }
+                        }, 2000);
+                    }
+                    
+                    return true;
+                } else {
+                    const error = result.message || `HTTP ${response.status}: Failed to save`;
+                    console.error('GitHub API error:', error);
+                    throw new Error(error);
+                }
+                
+            } catch (error) {
+                console.error('GitHub save error:', error);
+                if (!silent) {
+                    showAlert(`❌ SAVE FAILED: ${error.message}`, 'error');
+                    
+                    // Offer troubleshooting
+                    setTimeout(() => {
+                        if (confirm('Save failed. Open troubleshooting guide?')) {
+                            showGithubTroubleshooting();
+                        }
+                    }, 1000);
+                }
+                return false;
+            }
+        }
+        
+        // ================ FIXED GITHUB LOAD FUNCTION ================
+        async function loadFromGithub() {
+            if (!githubConfig.token) {
+                showAlert('Please setup GitHub token first! Click the gear icon (⚙️).', 'error');
+                showGithubConfigModal();
+                return;
+            }
+            
+            if (!githubConfig.gistId || githubConfig.gistId.trim() === '') {
+                showAlert('No Gist ID configured. Save to GitHub first to create a Gist.', 'error');
+                return;
+            }
+            
+            try {
+                console.log('Loading from GitHub Gist:', githubConfig.gistId);
+                
+                // Show loading
+                showAlert('🔄 Loading from GitHub Cloud...', 'info');
+                
+                const response = await fetch(`https://api.github.com/gists/${githubConfig.gistId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `HTTP ${response.status}: Failed to load`);
+                }
+                
+                const gist = await response.json();
+                console.log('Gist loaded successfully:', gist);
+                
+                // Check if our data file exists
+                if (!gist.files || !gist.files['bop-dashboard-data.json']) {
+                    throw new Error('No bop-dashboard-data.json file found in Gist');
+                }
+                
+                const fileContent = gist.files['bop-dashboard-data.json'].content;
+                console.log('File content length:', fileContent.length);
+                
+                const importedData = JSON.parse(fileContent);
+                console.log('Parsed data, keys:', Object.keys(importedData));
+                
+                // Store backup of current data
+                const backup = {
+                    users: [...allUsers],
+                    workItems: [...workItems],
+                    qualityData: [...qualityData],
+                    ideasData: [...ideasData],
+                    feedbackData: [...feedbackData]
+                };
+                
+                // Clear current data
+                allUsers = [];
+                workItems = [];
+                qualityData = [];
+                ideasData = [];
+                feedbackData = [];
+                
+                // Load new data - try both structures for backward compatibility
+                if (importedData.data) {
+                    // New structure
+                    allUsers = importedData.data.users || [];
+                    workItems = importedData.data.workItems || [];
+                    qualityData = importedData.data.qualityData || [];
+                    ideasData = importedData.data.ideasData || [];
+                    feedbackData = importedData.data.feedbackData || [];
+                    console.log('Loaded using new data structure');
+                } else {
+                    // Legacy structure
+                    allUsers = importedData.users || [];
+                    workItems = importedData.workItems || [];
+                    qualityData = importedData.qualityData || [];
+                    ideasData = importedData.ideasData || [];
+                    feedbackData = importedData.feedbackData || [];
+                    console.log('Loaded using legacy structure');
+                }
+                
+                // Validate data was loaded
+                if (allUsers.length === 0 && workItems.length === 0) {
+                    console.warn('Loaded empty data, restoring backup');
+                    allUsers = backup.users;
+                    workItems = backup.workItems;
+                    qualityData = backup.qualityData;
+                    ideasData = backup.ideasData;
+                    feedbackData = backup.feedbackData;
+                    throw new Error('Loaded empty dataset');
+                }
+                
+                // Save locally
+                saveToLocalStorage();
+                
+                // Update dashboard
+                updateDashboard();
+                
+                // Update sync time
+                githubConfig.lastSync = new Date().toISOString();
+                localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(githubConfig));
+                
+                const stats = {
+                    users: allUsers.length,
+                    workItems: workItems.length,
+                    qualityData: qualityData.length,
+                    ideasData: ideasData.length,
+                    feedbackData: feedbackData.length
+                };
+                
+                const syncTime = importedData.exportedAt ? 
+                    new Date(importedData.exportedAt).toLocaleString() : 'Unknown';
+                
+                showAlert(`✅ DATA LOADED SUCCESSFULLY!
+
+📊 Loaded Statistics:
+• Users: ${stats.users}
+• Work Items: ${stats.workItems}
+• Quality Assessments: ${stats.qualityData}
+• Ideas: ${stats.ideasData}
+• Feedback: ${stats.feedbackData}
+
+⏰ Last Saved: ${syncTime}
+
+✅ Dashboard updated!`, 'success');
+                
+                // Force refresh all tabs
+                loadTabContent();
+                
+                // Relogin if current user exists in loaded data
+                if (currentUser) {
+                    const reloadedUser = allUsers.find(u => u.id === currentUser.id);
+                    if (reloadedUser) {
+                        currentUser = reloadedUser;
+                        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+                        updateUserInterface();
+                    }
+                }
+                
+            } catch (error) {
+                console.error('GitHub load error:', error);
+                
+                // Determine error type
+                let errorMsg = `❌ Error loading from GitHub: ${error.message}`;
+                
+                if (error.message.includes('401') || error.message.includes('403')) {
+                    errorMsg += '\n\n🔑 Token may be invalid or expired. Generate a new token.';
+                } else if (error.message.includes('404')) {
+                    errorMsg += '\n\n🔗 Gist not found. Check Gist ID or save data first.';
+                } else if (error.message.includes('JSON')) {
+                    errorMsg += '\n\n📄 Invalid data format in Gist.';
+                } else if (error.message.includes('empty')) {
+                    errorMsg += '\n\n📭 Gist exists but contains no data.';
+                }
+                
+                showAlert(errorMsg, 'error');
+            }
+        }
+        
+        // ================ NEW VERIFICATION FUNCTIONS ================
+        async function verifyGithubSave() {
+            if (!githubConfig.token || !githubConfig.gistId) {
+                showAlert('Not configured. Set up GitHub first.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/gists/${githubConfig.gistId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: Cannot access Gist`);
+                }
+                
+                const gist = await response.json();
+                
+                if (gist.files && gist.files['bop-dashboard-data.json']) {
+                    const content = gist.files['bop-dashboard-data.json'].content;
+                    const data = JSON.parse(content);
+                    
+                    const stats = {
+                        users: data.data?.users?.length || data.users?.length || 0,
+                        workItems: data.data?.workItems?.length || data.workItems?.length || 0,
+                        ideas: data.data?.ideasData?.length || data.ideasData?.length || 0,
+                        lastUpdated: data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'Unknown'
+                    };
+                    
+                    const verifyMsg = `✅ VERIFICATION SUCCESSFUL!
+
+📊 Data on GitHub:
+• Users: ${stats.users}
+• Work Items: ${stats.workItems}
+• Ideas: ${stats.ideas}
+• Last Saved: ${stats.lastUpdated}
+
+🔗 Gist URL: https://gist.github.com/${gist.owner?.login || 'anonymous'}/${githubConfig.gistId}
+
+✅ Your data is safely stored on GitHub!`;
+                    
+                    alert(verifyMsg);
+                    
+                    // Option to open in browser
+                    const open = confirm('Open this Gist in browser to view raw data?');
+                    if (open) {
+                        window.open(`https://gist.github.com/${gist.owner?.login || 'anonymous'}/${githubConfig.gistId}`, '_blank');
+                    }
+                    
+                } else {
+                    alert('❌ Verification failed: No data file found in Gist');
+                }
+                
+            } catch (error) {
+                console.error('Verification error:', error);
+                alert(`❌ Verification failed: ${error.message}`);
+            }
+        }
+        
+        function showMyGistId() {
+            if (!githubConfig.gistId) {
+                alert('No Gist ID found. Save to GitHub first to create one.');
+                return;
+            }
+            
+            const message = `📋 YOUR GIST ID:
+${githubConfig.gistId}
+
+📝 INSTRUCTIONS:
+1. Share this ID with team members
+2. They enter it in Settings (gear icon)
+3. Everyone uses SAME Gist ID to sync
+
+✅ Click OK to copy to clipboard`;
+            
+            if (confirm(message)) {
+                navigator.clipboard.writeText(githubConfig.gistId)
+                    .then(() => {
+                        showAlert('✅ Gist ID copied to clipboard!', 'success');
+                    })
+                    .catch(err => {
+                        // Fallback
+                        prompt('Copy this Gist ID:', githubConfig.gistId);
+                    });
+            }
+        }
+        
+        function showGithubTroubleshooting() {
+            alert(`🔧 GITHUB TROUBLESHOOTING GUIDE
+
+1. "Token invalid" error?
+   • Generate NEW token: https://github.com/settings/tokens
+   • Select ONLY "gist" scope
+   • Copy immediately (hidden after)
+
+2. "Gist not found" error?
+   • Click "Save to Cloud" to create Gist
+   • Or enter correct Gist ID from teammate
+
+3. "Loaded but no data shows"?
+   • Open browser console (F12) for errors
+   • Check if data structure matches
+
+4. "Data not syncing"?
+   • ALL must use SAME Gist ID
+   • Check if everyone has same Gist ID
+
+💡 QUICK FIX:
+1. Clear config: localStorage.removeItem('bop_github_config')
+2. Reload page
+3. Setup fresh token
+4. Save to create new Gist
+5. Share ID with team`);
+        }
+        
+        // ================ KEEP ALL YOUR ORIGINAL FUNCTIONS BELOW ================
+        // ONLY replace the GitHub functions above, keep everything else exactly as it was
+        
+        // ================ YOUR ORIGINAL FUNCTIONS START HERE ================
+        // I'm keeping your exact original code structure
+        
+        function initializeDefaultData() {
+            // Load existing data or initialize with defaults
+            loadFromLocalStorage();
+            
+            // Add sample BOP users if none exist
+            if (allUsers.length === 0) {
+                createBOPUsers();
+                // Add some sample data for demonstration
+                createSampleData();
+                saveToLocalStorage();
+            }
+        }
+        
+        function createBOPUsers() {
+            allUsers = [
+                {
+                    id: 1,
+                    name: "Ali Hassan",
+                    email: "ali@company.com",
+                    password: "manager123",
+                    role: "bop-manager",
+                    department: "Business Operations",
+                    avatar: "AH",
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    name: "Fatima Ahmed",
+                    email: "fatima@company.com",
+                    password: "executive123",
+                    role: "bop-executive",
+                    department: "Business Operations",
+                    avatar: "FA",
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 3,
+                    name: "Mohammed Khalid",
+                    email: "mohammed@company.com",
+                    password: "reporting123",
+                    role: "reporting-manager",
+                    department: "Business Operations",
+                    avatar: "MK",
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: 4,
+                    name: "Sarah Al Mansoori",
+                    email: "sarah@company.com",
+                    password: "executive123",
+                    role: "bop-executive",
+                    department: "Business Operations",
+                    avatar: "SA",
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                }
+            ];
+        }
+        
+        function createSampleData() {
+            // Sample work items
+            workItems = [
+                {
+                    id: 1,
+                    userId: 2,
+                    name: "Monthly Operations Report",
+                    type: "Report",
+                    dueDate: "2024-03-15",
+                    deliveryDate: "2024-03-14",
+                    status: "On Time",
+                    complexity: "Medium",
+                    impact: "High",
+                    hoursSaved: 0,
+                    description: "Monthly performance analysis of all business operations",
+                    createdAt: "2024-03-01",
+                    createdBy: 2
+                },
+                {
+                    id: 2,
+                    userId: 2,
+                    name: "Automated Data Cleanup Script",
+                    type: "Automation",
+                    dueDate: "2024-03-10",
+                    deliveryDate: "2024-03-08",
+                    status: "Completed Early",
+                    complexity: "High",
+                    impact: "Medium",
+                    hoursSaved: 15,
+                    description: "Python script to automate weekly data cleanup",
+                    createdAt: "2024-02-28",
+                    createdBy: 2
+                },
+                {
+                    id: 3,
+                    userId: 4,
+                    name: "Sales Dashboard",
+                    type: "Dashboard",
+                    dueDate: "2024-03-20",
+                    deliveryDate: "2024-03-20",
+                    status: "On Time",
+                    complexity: "High",
+                    impact: "High",
+                    hoursSaved: 0,
+                    description: "Interactive dashboard for sales team performance",
+                    createdAt: "2024-03-05",
+                    createdBy: 4
+                }
+            ];
+            
+            // Sample quality assessments
+            qualityData = [
+                {
+                    id: 1,
+                    userId: 2,
+                    workItemId: 1,
+                    workItemName: "Monthly Operations Report",
+                    date: "2024-03-15",
+                    accuracy: 9,
+                    efficiency: 8,
+                    timeliness: 9,
+                    proactivity: 7,
+                    avgScore: 8.3,
+                    notes: "Excellent report with good insights. Could include more predictive analytics.",
+                    assessedBy: 1,
+                    assessedAt: "2024-03-16"
+                }
+            ];
+            
+            // Sample ideas
+            ideasData = [
+                {
+                    id: 1,
+                    userId: 2,
+                    title: "Automated Report Distribution",
+                    date: "2024-03-10",
+                    category: "Process Improvement",
+                    impact: "3-4%",
+                    description: "Automate distribution of monthly reports via email to stakeholders",
+                    approvalStatus: "Approved",
+                    managerFeedback: "Great idea! Will save time and ensure timely delivery.",
+                    submittedAt: "2024-03-10"
+                },
+                {
+                    id: 2,
+                    userId: 4,
+                    title: "Real-time Data Sync",
+                    date: "2024-03-12",
+                    category: "Automation",
+                    impact: "5%+",
+                    description: "Implement real-time data synchronization between systems",
+                    approvalStatus: "Pending",
+                    managerFeedback: "",
+                    submittedAt: "2024-03-12"
+                }
+            ];
+            
+            // Sample feedback
+            feedbackData = [
+                {
+                    id: 1,
+                    fromUserId: 1,
+                    feedbackFor: 2,
+                    date: "2024-03-18",
+                    type: "Appreciation",
+                    rating: 5,
+                    badgeType: "Gold",
+                    impactPercentage: "3%",
+                    message: "Excellent work on the monthly report! Very thorough and well-presented.",
+                    givenAt: "2024-03-18"
+                },
+                {
+                    id: 2,
+                    fromUserId: 4,
+                    feedbackFor: 2,
+                    date: "2024-03-15",
+                    type: "Collaboration",
+                    rating: 4,
+                    badgeType: "Silver",
+                    impactPercentage: "1%",
+                    message: "Thanks for helping with the data validation process!",
+                    givenAt: "2024-03-15"
+                }
+            ];
+        }
+        
+        // ================ LOGIN FUNCTIONS ================
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Find user
+            const user = allUsers.find(u => 
+                u.email === email && 
+                u.password === password && 
+                u.isActive === true
+            );
+            
+            if (user) {
+                loginUser(user);
+            } else {
+                alert('Invalid email or password. Please try again.');
+            }
+        }
+        
+        function loginUser(user) {
+            currentUser = user;
+            localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+            
+            // Show main dashboard
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+            
+            // Update UI
+            updateUserInterface();
+            
+            // Load dashboard data
+            updateDashboard();
+            
+            console.log(`User logged in: ${user.name} (${user.role})`);
+        }
+        
+        function checkLoggedInUser() {
+            const savedUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                // Verify user still exists
+                const validUser = allUsers.find(u => u.id === user.id && u.isActive === true);
+                if (validUser) {
+                    loginUser(validUser);
+                }
+            }
+        }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+            
+            document.getElementById('mainDashboard').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'flex';
+            
+            // Clear login form
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+        
+        // ================ USER INTERFACE ================
+        function updateUserInterface() {
+            if (!currentUser) return;
+            
+            // Update user info in header
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userAvatar').textContent = currentUser.avatar;
+            
+            // Update role badge
+            const roleBadge = document.getElementById('userRole');
+            let roleDisplay = '';
+            let badgeClass = '';
+            
+            switch(currentUser.role) {
+                case 'bop-manager':
+                    roleDisplay = 'BOP Manager';
+                    badgeClass = 'bop-manager';
+                    break;
+                case 'bop-executive':
+                    roleDisplay = 'BOP Executive';
+                    badgeClass = 'bop-executive';
+                    break;
+                case 'reporting-manager':
+                    roleDisplay = 'Reporting Manager';
+                    badgeClass = 'reporting-manager';
+                    break;
+            }
+            
+            roleBadge.textContent = roleDisplay;
+            roleBadge.className = 'role-badge ' + badgeClass;
+            
+            // Show/hide team filters for managers
+            const teamFilters = document.getElementById('teamFilters');
+            if (currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager') {
+                teamFilters.style.display = 'flex';
+                updateTeamFilterDropdown();
+            } else {
+                teamFilters.style.display = 'none';
+            }
+            
+            // Show/hide tabs based on role
+            const teamTab = document.getElementById('teamTab');
+            const teamManagementTab = document.getElementById('teamManagementTab');
+            
+            if (currentUser.role === 'bop-executive') {
+                teamTab.style.display = 'none';
+                teamManagementTab.style.display = 'none';
+            } else {
+                teamTab.style.display = 'flex';
+                teamManagementTab.style.display = 'flex';
+            }
+            
+            // Update GitHub status
+            updateGithubStatus();
+        }
+        
+        function updateTeamFilterDropdown() {
+            const dropdown = document.getElementById('memberFilter');
+            dropdown.innerHTML = '<option value="all">All Team Members</option>';
+            
+            // Add current user first if they want to see their own data
+            dropdown.innerHTML += `<option value="${currentUser.id}">${currentUser.name} (Me)</option>`;
+            
+            // Add other active team members
+            allUsers.filter(user => user.isActive && user.id !== currentUser.id).forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = `${user.name} (${user.role})`;
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // ================ DATA MANAGEMENT ================
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(allUsers));
+                localStorage.setItem(STORAGE_KEYS.WORK_ITEMS, JSON.stringify(workItems));
+                localStorage.setItem(STORAGE_KEYS.QUALITY_DATA, JSON.stringify(qualityData));
+                localStorage.setItem(STORAGE_KEYS.IDEAS_DATA, JSON.stringify(ideasData));
+                localStorage.setItem(STORAGE_KEYS.FEEDBACK_DATA, JSON.stringify(feedbackData));
+                console.log("Data saved to localStorage");
+            } catch (error) {
+                console.error("Error saving to localStorage:", error);
+                showAlert('Error saving data.', 'error');
+            }
+        }
+        
+        function loadFromLocalStorage() {
+            try {
+                const savedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
+                if (savedUsers) allUsers = JSON.parse(savedUsers);
+                
+                const savedWorkItems = localStorage.getItem(STORAGE_KEYS.WORK_ITEMS);
+                if (savedWorkItems) workItems = JSON.parse(savedWorkItems);
+                
+                const savedQuality = localStorage.getItem(STORAGE_KEYS.QUALITY_DATA);
+                if (savedQuality) qualityData = JSON.parse(savedQuality);
+                
+                const savedIdeas = localStorage.getItem(STORAGE_KEYS.IDEAS_DATA);
+                if (savedIdeas) ideasData = JSON.parse(savedIdeas);
+                
+                const savedFeedback = localStorage.getItem(STORAGE_KEYS.FEEDBACK_DATA);
+                if (savedFeedback) feedbackData = JSON.parse(savedFeedback);
+                
+                console.log("Data loaded successfully");
+            } catch (error) {
+                console.error("Error loading from localStorage:", error);
+                // Initialize with empty arrays
+                workItems = []; qualityData = []; ideasData = []; feedbackData = [];
+            }
+        }
+        
+        // ================ DASHBOARD CALCULATIONS ================
+        function calculateUserPerformance(userId) {
+            // Determine which user's data to calculate
+            let targetUserId;
+            
+            if (currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager') {
+                // Managers can view any user's performance
+                targetUserId = selectedMemberId !== 'all' ? parseInt(selectedMemberId) : userId;
+            } else {
+                // Executives can only view their own performance
+                targetUserId = currentUser.id;
+            }
+            
+            // Filter data based on selected user
+            const userWorkItems = workItems.filter(item => item.userId === targetUserId);
+            const userQuality = qualityData.filter(item => item.userId === targetUserId);
+            const userIdeas = ideasData.filter(item => item.userId === targetUserId);
+            const userFeedback = feedbackData.filter(item => item.feedbackFor === targetUserId);
+            
+            // Quantity Score (based on number of work items)
+            const totalItems = userWorkItems.length;
+            const quantityScore = Math.min(100, (totalItems / 3) * 100);
+            
+            // Quality Score (average of quality assessments)
+            let qualityScore = 0;
+            if (userQuality.length > 0) {
+                const avgScore = userQuality.reduce((sum, q) => sum + (q.avgScore || 0), 0) / userQuality.length;
+                qualityScore = (avgScore / 10) * 100;
+            }
+            
+            // Ideas Score (percentage of approved ideas)
+            const totalIdeas = userIdeas.length;
+            const approvedIdeas = userIdeas.filter(idea => idea.approvalStatus === 'Approved' || idea.approvalStatus === 'Implemented').length;
+            const ideasScore = totalIdeas > 0 ? (approvedIdeas / totalIdeas) * 100 : 0;
+            
+            // Feedback Score (based on ratings and badges)
+            const totalFeedback = userFeedback.length;
+            const avgRating = totalFeedback > 0 ? 
+                (userFeedback.reduce((sum, f) => sum + f.rating, 0) / totalFeedback) * 20 : 0;
+            const goldBadges = userFeedback.filter(f => f.badgeType === 'Gold').length;
+            const silverBadges = userFeedback.filter(f => f.badgeType === 'Silver').length;
+            const feedbackScore = Math.min(100, avgRating + (goldBadges * 3) + (silverBadges * 1));
+            
+            // Overall Score
+            const overallScore = calculateOverallScore(quantityScore, qualityScore, ideasScore, feedbackScore);
+            
+            return {
+                quantityScore,
+                qualityScore,
+                ideasScore,
+                feedbackScore,
+                overallScore,
+                totalItems,
+                totalIdeas,
+                approvedIdeas,
+                totalFeedback,
+                goldBadges,
+                silverBadges,
+                lastUpdated: new Date().toISOString()
+            };
+        }
+        
+        function calculateOverallScore(quantity, quality, ideas, feedback) {
+            const weights = {
+                quantity: 0.30,
+                quality: 0.40,
+                ideas: 0.15,
+                feedback: 0.15
+            };
+            
+            const weightedScore = (
+                quantity * weights.quantity +
+                quality * weights.quality +
+                ideas * weights.ideas +
+                feedback * weights.feedback
+            );
+            
+            return (weightedScore / 20).toFixed(1);
+        }
+        
+        function updateDashboard() {
+            if (!currentUser) return;
+            
+            // For executives, always show their own data (ignore selectedMemberId)
+            let targetUserId = currentUser.id;
+            
+            if (currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager') {
+                // Managers can view filtered data
+                targetUserId = selectedMemberId !== 'all' ? parseInt(selectedMemberId) : currentUser.id;
+            }
+            
+            // Calculate performance for the appropriate user
+            const performance = calculateUserPerformance(targetUserId);
+            
+            // Update 4 main measures
+            updateMeasureDisplay(performance);
+            
+            // Update detailed metrics
+            updateDetailedMetrics(performance);
+            
+            // Update overall score
+            updateOverallScore(performance.overallScore);
+            
+            // Update user rank
+            updateUserRank();
+            
+            // Load current tab content
+            loadTabContent();
+        }
+        
+        function updateMeasureDisplay(performance) {
+            document.getElementById('quantityScore').textContent = Math.round(performance.quantityScore) + '%';
+            document.getElementById('quantityFill').style.width = performance.quantityScore + '%';
+            
+            document.getElementById('qualityScore').textContent = Math.round(performance.qualityScore) + '%';
+            document.getElementById('qualityFill').style.width = performance.qualityScore + '%';
+            
+            document.getElementById('ideasScore').textContent = Math.round(performance.ideasScore) + '%';
+            document.getElementById('ideasFill').style.width = performance.ideasScore + '%';
+            
+            document.getElementById('feedbackScore').textContent = Math.round(performance.feedbackScore) + '%';
+            document.getElementById('feedbackFill').style.width = performance.feedbackScore + '%';
+        }
+        
+        function updateDetailedMetrics(performance) {
+            // Determine which user's data to show
+            let targetUserId;
+            
+            if (currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager') {
+                targetUserId = selectedMemberId !== 'all' ? parseInt(selectedMemberId) : currentUser.id;
+            } else {
+                targetUserId = currentUser.id;
+            }
+            
+            const userWorkItems = workItems.filter(item => item.userId === targetUserId);
+            
+            const reportsCount = userWorkItems.filter(item => item.type === 'Report').length;
+            const automationCount = userWorkItems.filter(item => item.type === 'Automation').length;
+            const dashboardsCount = userWorkItems.filter(item => item.type === 'Dashboard').length;
+            const templatesCount = userWorkItems.filter(item => item.type === 'Template').length;
+            const totalHoursSaved = userWorkItems.reduce((sum, item) => sum + (item.hoursSaved || 0), 0);
+            
+            document.getElementById('reportsValue').textContent = reportsCount;
+            document.getElementById('reportsStatus').textContent = reportsCount;
+            
+            document.getElementById('automationValue').textContent = automationCount;
+            document.getElementById('automationStatus').textContent = automationCount;
+            
+            document.getElementById('dashboardsValue').textContent = dashboardsCount;
+            document.getElementById('dashboardsStatus').textContent = dashboardsCount;
+            
+            document.getElementById('templatesValue').textContent = templatesCount;
+            document.getElementById('templatesStatus').textContent = templatesCount;
+            
+            document.getElementById('hoursSaved').textContent = totalHoursSaved;
+        }
+        
+        function updateOverallScore(score) {
+            document.getElementById('overallScore').textContent = score;
+            
+            // Update star rating
+            const starRating = document.getElementById('starRating');
+            starRating.innerHTML = '';
+            const numericScore = parseFloat(score);
+            
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                if (i <= Math.floor(numericScore)) {
+                    star.className = 'fas fa-star';
+                } else if (i - 0.5 <= numericScore) {
+                    star.className = 'fas fa-star-half-alt';
+                } else {
+                    star.className = 'far fa-star';
+                }
+                starRating.appendChild(star);
+            }
+            
+            // Update performance level
+            const performanceLevel = document.getElementById('performanceLevel');
+            if (numericScore >= 4.5) {
+                performanceLevel.textContent = 'Excellent';
+                performanceLevel.style.background = '#4CAF50';
+            } else if (numericScore >= 4.0) {
+                performanceLevel.textContent = 'Very Good';
+                performanceLevel.style.background = '#2196F3';
+            } else if (numericScore >= 3.0) {
+                performanceLevel.textContent = 'Good';
+                performanceLevel.style.background = '#FF9800';
+            } else {
+                performanceLevel.textContent = 'Needs Improvement';
+                performanceLevel.style.background = '#F44336';
+            }
+            
+            // Update current period display
+            const timeFilter = document.getElementById('timeFilter');
+            const periodText = timeFilter ? timeFilter.options[timeFilter.selectedIndex].text : 'Current Period';
+            document.getElementById('currentPeriod').textContent = periodText;
+        }
+        
+        function updateUserRank() {
+            // Calculate ranks for all active BOP users
+            const bopUsers = allUsers.filter(user => 
+                user.isActive && 
+                (user.role === 'bop-executive' || user.role === 'bop-manager' || user.role === 'reporting-manager')
+            );
+            
+            const userPerformances = bopUsers
+                .map(user => ({
+                    id: user.id,
+                    name: user.name,
+                    score: parseFloat(calculateUserPerformance(user.id).overallScore)
+                }))
+                .sort((a, b) => b.score - a.score);
+            
+            const targetUserId = selectedMemberId !== 'all' ? parseInt(selectedMemberId) : currentUser.id;
+            const userRank = userPerformances.findIndex(p => p.id === targetUserId) + 1;
+            const totalUsers = userPerformances.length;
+            
+            document.getElementById('userRank').textContent = `${userRank} of ${totalUsers}`;
+        }
+        
+        // ================ TAB MANAGEMENT ================
+        function switchTab(tabName) {
+            // Hide all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                content.innerHTML = '';
+            });
+            
+            // Activate selected tab
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.includes(tabName.charAt(0).toUpperCase() + tabName.slice(1)) || 
+                    (tabName === 'quantity' && tab.textContent.includes('Quantity')) ||
+                    (tabName === 'quality' && tab.textContent.includes('Quality')) ||
+                    (tabName === 'ideas' && tab.textContent.includes('Ideas')) ||
+                    (tabName === 'feedback' && tab.textContent.includes('Feedback')) ||
+                    (tabName === 'team' && tab.textContent.includes('Team Performance')) ||
+                    (tabName === 'team-management' && tab.textContent.includes('Team Management'))) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Load tab content
+            loadTabContent(tabName);
+        }
+        
+        function loadTabContent(tabName = null) {
+            if (!tabName) {
+                // Get active tab
+                const activeTab = document.querySelector('.tab.active');
+                if (activeTab) {
+                    if (activeTab.textContent.includes('Quantity')) tabName = 'quantity';
+                    else if (activeTab.textContent.includes('Quality')) tabName = 'quality';
+                    else if (activeTab.textContent.includes('Ideas')) tabName = 'ideas';
+                    else if (activeTab.textContent.includes('Feedback')) tabName = 'feedback';
+                    else if (activeTab.textContent.includes('Team Performance')) tabName = 'team';
+                    else if (activeTab.textContent.includes('Team Management')) tabName = 'team-management';
+                    else tabName = 'quantity';
+                } else {
+                    tabName = 'quantity';
+                }
+            }
+            
+            const tabContent = document.getElementById(tabName);
+            tabContent.classList.add('active');
+            
+            switch(tabName) {
+                case 'quantity':
+                    loadQuantityTab();
+                    break;
+                case 'quality':
+                    loadQualityTab();
+                    break;
+                case 'ideas':
+                    loadIdeasTab();
+                    break;
+                case 'feedback':
+                    loadFeedbackTab();
+                    break;
+                case 'team':
+                    loadTeamTab();
+                    break;
+                case 'team-management':
+                    loadTeamManagementTab();
+                    break;
+            }
+        }
+        
+        function loadQuantityTab() {
+            const tabContent = document.getElementById('quantity');
+            
+            tabContent.innerHTML = `
+                <h2 class="section-title"><i class="fas fa-chart-bar"></i> Work Output - Quantity</h2>
+                
+                <div class="data-form">
+                    <h3><i class="fas fa-plus-circle"></i> Add Work Item</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemName">Item Name *</label>
+                            <input type="text" id="itemName" placeholder="e.g., Monthly Operations Report">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemType">Type *</label>
+                            <select id="itemType">
+                                <option value="Report">📄 Report</option>
+                                <option value="Project">📋 Project</option>
+                                <option value="Dashboard">📊 Dashboard</option>
+                                <option value="Template">🎨 Template</option>
+                                <option value="Automation">🤖 Automation</option>
+                                <option value="Process Improvement">⚙️ Process Improvement</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="itemDueDate">Due Date *</label>
+                            <input type="date" id="itemDueDate" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDeliveryDate">Delivery Date</label>
+                            <input type="date" id="itemDeliveryDate" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemStatus">Status *</label>
+                            <select id="itemStatus">
+                                <option value="On Time">✅ On Time</option>
+                                <option value="Late">⚠️ Late</option>
+                                <option value="Completed Early">🚀 Completed Early</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="complexityLevel">Complexity Level *</label>
+                            <select id="complexityLevel">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="businessImpact">Business Impact *</label>
+                            <select id="businessImpact">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="hoursSaved">Hours Saved/Month</label>
+                            <input type="number" id="hoursSavedInput" min="0" step="0.5" placeholder="If applicable">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDescription">Description</label>
+                        <textarea id="itemDescription" rows="3" placeholder="Brief description..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addWorkItem()">
+                        <i class="fas fa-plus"></i> Add Work Item
+                    </button>
+                </div>
+                
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label>Filter by Type</label>
+                        <select id="filterType" onchange="filterWorkItems()">
+                            <option value="all">All Types</option>
+                            <option value="Report">Report</option>
+                            <option value="Project">Project</option>
+                            <option value="Dashboard">Dashboard</option>
+                            <option value="Automation">Automation</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Filter by Status</label>
+                        <select id="filterStatus" onchange="filterWorkItems()">
+                            <option value="all">All Status</option>
+                            <option value="On Time">On Time</option>
+                            <option value="Late">Late</option>
+                            <option value="Completed Early">Completed Early</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <table id="quantityTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Due Date</th>
+                            <th>Delivery</th>
+                            <th>Status</th>
+                            <th>Complexity</th>
+                            <th>Impact</th>
+                            <th>Hours Saved</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quantityTableBody">
+                        <!-- Work items will appear here -->
+                    </tbody>
+                </table>
+                
+                <div id="quantityEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>No Work Items Yet</h3>
+                    <p>Add your first work item above</p>
+                </div>
+            `;
+            
+            filterWorkItems();
+        }
+        
+        function loadQualityTab() {
+            const tabContent = document.getElementById('quality');
+            const isManager = currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager';
+            
+            tabContent.innerHTML = `
+                <h2 class="section-title"><i class="fas fa-check-double"></i> Quality Assessment</h2>
+                
+                ${isManager ? `
+                <div class="data-form">
+                    <h3><i class="fas fa-chart-line"></i> Assess Work Quality</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="qualityUser">Select User</label>
+                            <select id="qualityUser" onchange="updateWorkItemDropdown()">
+                                ${allUsers.filter(u => u.isActive && u.id !== currentUser.id).map(user => 
+                                    `<option value="${user.id}">${user.name} (${user.role})</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="qualityItem">Select Work Item *</label>
+                            <select id="qualityItem">
+                                <option value="">Select a work item...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="qualityDate">Assessment Date</label>
+                            <input type="date" id="qualityDate" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accuracyScore">Accuracy (1-10)</label>
+                            <input type="range" id="accuracyScore" min="1" max="10" value="8">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                                <span>Poor</span><span id="accuracyValueDisplay">8/10</span><span>Excellent</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="efficiencyScore">Efficiency (1-10)</label>
+                            <input type="range" id="efficiencyScore" min="1" max="10" value="7">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                                <span>Poor</span><span id="efficiencyValueDisplay">7/10</span><span>Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="timelinessScore">Timeliness (1-10)</label>
+                            <input type="range" id="timelinessScore" min="1" max="10" value="9">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                                <span>Poor</span><span id="timelinessValueDisplay">9/10</span><span>Excellent</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="proactivityScore">Proactivity (1-10)</label>
+                            <input type="range" id="proactivityScore" min="1" max="10" value="6">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                                <span>Poor</span><span id="proactivityValueDisplay">6/10</span><span>Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="qualityNotes">Quality Notes & Improvements</label>
+                        <textarea id="qualityNotes" rows="3" placeholder="Notes on quality, risks identified..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addQualityAssessment()">
+                        <i class="fas fa-plus"></i> Add Assessment
+                    </button>
+                </div>` : 
+                // Executives see their own quality assessments
+                `<div class="data-form">
+                    <h3><i class="fas fa-chart-line"></i> My Quality Assessments</h3>
+                    <p>View assessments of your work by managers.</p>
+                </div>`}
+                
+                <div class="filters-container">
+                    ${isManager ? `
+                    <div class="filter-group">
+                        <label>Filter by User</label>
+                        <select id="qualityFilterUser" onchange="filterQualityAssessments()">
+                            <option value="all">All Users</option>
+                            ${allUsers.filter(u => u.isActive).map(user => 
+                                `<option value="${user.id}">${user.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>` : ''}
+                    <div class="filter-group">
+                        <label>Time Period</label>
+                        <select id="qualityFilterTime" onchange="filterQualityAssessments()">
+                            <option value="all">All Time</option>
+                            <option value="month">Last Month</option>
+                            <option value="quarter">Last Quarter</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <table id="qualityTable">
+                    <thead>
+                        <tr>
+                            ${isManager ? '<th>User</th>' : ''}
+                            <th>Work Item</th>
+                            <th>Date</th>
+                            <th>Accuracy</th>
+                            <th>Efficiency</th>
+                            <th>Timeliness</th>
+                            <th>Proactivity</th>
+                            <th>Avg Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="qualityTableBody">
+                        <!-- Quality assessments will appear here -->
+                    </tbody>
+                </table>
+                
+                <div id="qualityEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>No Quality Assessments Yet</h3>
+                    <p>${isManager ? 'Add your first quality assessment above' : 'No assessments available yet'}</p>
+                </div>
+            `;
+            
+            if (isManager) {
+                setupQualitySliders();
+                updateWorkItemDropdown();
+            }
+            filterQualityAssessments();
+        }
+        
+        function loadIdeasTab() {
+            const tabContent = document.getElementById('ideas');
+            const isManager = currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager';
+            
+            tabContent.innerHTML = `
+                <h2 class="section-title"><i class="fas fa-lightbulb"></i> Ideas & Innovation</h2>
+                
+                <div class="data-form">
+                    <h3><i class="fas fa-bolt"></i> ${isManager ? 'Review Ideas' : 'Submit New Idea'}</h3>
+                    ${!isManager ? `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ideaTitle">Idea Title *</label>
+                            <input type="text" id="ideaTitle" placeholder="e.g., Automated Report Generation">
+                        </div>
+                        <div class="form-group">
+                            <label for="ideaDate">Submission Date *</label>
+                            <input type="date" id="ideaDate" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ideaCategory">Category *</label>
+                            <select id="ideaCategory">
+                                <option value="Process Improvement">⚙️ Process Improvement</option>
+                                <option value="Automation">🤖 Automation</option>
+                                <option value="Innovation">💡 Innovation</option>
+                                <option value="Cost Saving">💰 Cost Saving</option>
+                                <option value="Revenue Generation">📈 Revenue Generation</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ideaImpact">Potential Impact *</label>
+                            <select id="ideaImpact">
+                                <option value="1-2%">1-2% Overall Impact</option>
+                                <option value="3-4%">3-4% Overall Impact</option>
+                                <option value="5%+">5%+ Overall Impact</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ideaDescription">Idea Description *</label>
+                        <textarea id="ideaDescription" rows="4" placeholder="Describe your idea in detail..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitIdea()">
+                        <i class="fas fa-paper-plane"></i> Submit Idea
+                    </button>` : `
+                    <p style="color: #666;">Review and approve ideas submitted by BOP executives. Your feedback will be visible to them.</p>
+                    `}
+                </div>
+                
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label>Filter by Status</label>
+                        <select id="ideaFilterStatus" onchange="filterIdeas()">
+                            <option value="all">All Status</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Implemented">Implemented</option>
+                        </select>
+                    </div>
+                    ${isManager ? `
+                    <div class="filter-group">
+                        <label>Filter by User</label>
+                        <select id="ideaFilterUser" onchange="filterIdeas()">
+                            <option value="all">All Users</option>
+                            ${allUsers.filter(u => u.isActive && u.role !== 'bop-manager').map(user => 
+                                `<option value="${user.id}">${user.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>` : ''}
+                    <div class="filter-group">
+                        <label>Filter by Category</label>
+                        <select id="ideaFilterCategory" onchange="filterIdeas()">
+                            <option value="all">All Categories</option>
+                            <option value="Process Improvement">Process Improvement</option>
+                            <option value="Automation">Automation</option>
+                            <option value="Innovation">Innovation</option>
+                            <option value="Cost Saving">Cost Saving</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <table id="ideasTable">
+                    <thead>
+                        <tr>
+                            ${isManager ? '<th>Submitted By</th>' : ''}
+                            <th>Idea Title</th>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Potential Impact</th>
+                            <th>Approval Status</th>
+                            <th>Manager Feedback</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ideasTableBody">
+                        <!-- Ideas will appear here -->
+                    </tbody>
+                </table>
+                
+                <div id="ideasEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>No Ideas Yet</h3>
+                    <p>${isManager ? 'No ideas submitted by team members yet' : 'Submit your first idea above'}</p>
+                </div>
+            `;
+            
+            filterIdeas();
+        }
+        
+        function loadFeedbackTab() {
+            const tabContent = document.getElementById('feedback');
+            
+            tabContent.innerHTML = `
+                <h2 class="section-title"><i class="fas fa-star"></i> Feedback & Collaboration</h2>
+                
+                <div class="data-form">
+                    <h3><i class="fas fa-comment-alt"></i> Give Feedback</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="feedbackFor">Feedback For *</label>
+                            <select id="feedbackFor">
+                                ${allUsers
+                                    .filter(u => u.isActive && u.id !== currentUser.id)
+                                    .map(user => `<option value="${user.id}">${user.name} (${user.role})</option>`)
+                                    .join('')}
+                        </div>
+                        <div class="form-group">
+                            <label for="feedbackDate">Date *</label>
+                            <input type="date" id="feedbackDate" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="feedbackType">Feedback Type *</label>
+                            <select id="feedbackType">
+                                <option value="Appreciation">👍 Appreciation</option>
+                                <option value="Collaboration">🤝 Collaboration</option>
+                                <option value="Innovation">💡 Innovation</option>
+                                <option value="Leadership">🌟 Leadership</option>
+                                <option value="Support">🛠️ Support</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="feedbackRating">Rating (1-5) *</label>
+                            <select id="feedbackRating">
+                                <option value="1">★☆☆☆☆ (Poor)</option>
+                                <option value="2">★★☆☆☆ (Fair)</option>
+                                <option value="3">★★★☆☆ (Good)</option>
+                                <option value="4">★★★★☆ (Very Good)</option>
+                                <option value="5">★★★★★ (Excellent)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="feedbackMessage">Feedback Message *</label>
+                        <textarea id="feedbackMessage" rows="4" placeholder="Provide specific feedback..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitFeedback()">
+                        <i class="fas fa-paper-plane"></i> Submit Feedback
+                    </button>
+                </div>
+                
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label>Filter by Type</label>
+                        <select id="feedbackFilterType" onchange="filterFeedback()">
+                            <option value="all">All Types</option>
+                            <option value="Appreciation">Appreciation</option>
+                            <option value="Collaboration">Collaboration</option>
+                            <option value="Innovation">Innovation</option>
+                            <option value="Leadership">Leadership</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Show</label>
+                        <select id="feedbackFilterView" onchange="filterFeedback()">
+                            <option value="received">Feedback Received</option>
+                            <option value="given">Feedback Given</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <table id="feedbackTable">
+                    <thead>
+                        <tr>
+                            <th>From/To</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Rating</th>
+                            <th>Badge</th>
+                            <th>Message</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedbackTableBody">
+                        <!-- Feedback will appear here -->
+                    </tbody>
+                </table>
+                
+                <div id="feedbackEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-comments"></i>
+                    <h3>No Feedback Yet</h3>
+                    <p>Give your first feedback above</p>
+                </div>
+            `;
+            
+            filterFeedback();
+        }
+        
+        function loadTeamTab() {
+            if (currentUser.role !== 'bop-manager' && currentUser.role !== 'reporting-manager') {
+                switchTab('quantity');
+                return;
+            }
+            
+            const tabContent = document.getElementById('team');
+            
+            tabContent.innerHTML = `
+                <h2 class="section-title"><i class="fas fa-users"></i> Team Performance Overview</h2>
+                
+                <div class="data-form">
+                    <h3><i class="fas fa-chart-pie"></i> Team Summary</h3>
+                    <div class="form-row" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                        <div class="stat-item">
+                            <div class="stat-value" id="teamAvgScore">0.0</div>
+                            <div class="stat-label">Average Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="teamTotalMembers">0</div>
+                            <div class="stat-label">Active Members</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="teamTopPerformer">-</div>
+                            <div class="stat-label">Top Performer</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="teamCompletedItems">0</div>
+                            <div class="stat-label">Work Items</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;"><i class="fas fa-medal"></i> Team Members Performance</h3>
+                <p>Click on any team member to view detailed performance metrics.</p>
+                
+                <div class="team-members-grid" id="teamMembersGrid">
+                    <!-- Team members will appear here -->
+                </div>
+                
+                <div id="teamEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-users"></i>
+                    <h3>No Team Members</h3>
+                    <p>Add team members to see performance metrics</p>
+                </div>
+            `;
+            
+            loadTeamPerformance();
+        }
+        
+        function loadTeamManagementTab() {
+            if (currentUser.role !== 'bop-manager' && currentUser.role !== 'reporting-manager') {
+                switchTab('quantity');
+                return;
+            }
+            
+            const tabContent = document.getElementById('team-management');
+            
+            tabContent.innerHTML = `
+                <h2 class="section-title"><i class="fas fa-user-plus"></i> Team Management</h2>
+                
+                <div class="data-form">
+                    <h3><i class="fas fa-plus-circle"></i> Add New Team Member</h3>
+                    <p style="color: #666; margin-bottom: 20px;">Add new team members to the BOP dashboard. You can set their role, department, and initial password.</p>
+                    <button class="btn btn-primary" onclick="openAddTeamMemberModal()">
+                        <i class="fas fa-user-plus"></i> Add New Team Member
+                    </button>
+                </div>
+                
+                <h3><i class="fas fa-list"></i> All Team Members</h3>
+                <p>Manage existing team members. You can edit their details, deactivate them, or reset their passwords.</p>
+                
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label>Filter by Role</label>
+                        <select id="teamMemberFilterRole" onchange="filterTeamMembers()">
+                            <option value="all">All Roles</option>
+                            <option value="bop-executive">BOP Executive</option>
+                            <option value="bop-manager">BOP Manager</option>
+                            <option value="reporting-manager">Reporting Manager</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Filter by Status</label>
+                        <select id="teamMemberFilterStatus" onchange="filterTeamMembers()">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <table id="teamMembersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Join Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamMembersTableBody">
+                        <!-- Team members will appear here -->
+                    </tbody>
+                </table>
+                
+                <div id="teamManagementEmpty" class="empty-state" style="display: none;">
+                    <i class="fas fa-users"></i>
+                    <h3>No Team Members</h3>
+                    <p>Add your first team member using the button above</p>
+                </div>
+            `;
+            
+            filterTeamMembers();
+        }
+        
+        // ================ DATA OPERATIONS ================
+        function addWorkItem() {
+            const name = document.getElementById('itemName').value.trim();
+            const type = document.getElementById('itemType').value;
+            const dueDate = document.getElementById('itemDueDate').value;
+            const deliveryDate = document.getElementById('itemDeliveryDate').value || dueDate;
+            const status = document.getElementById('itemStatus').value;
+            const complexity = document.getElementById('complexityLevel').value;
+            const impact = document.getElementById('businessImpact').value;
+            const hoursSaved = parseFloat(document.getElementById('hoursSavedInput').value) || 0;
+            const description = document.getElementById('itemDescription').value.trim();
+            
+            if (!name || !dueDate) {
+                showAlert('Please fill in all required fields!', 'error');
+                return;
+            }
+            
+            const newItem = {
+                id: workItems.length > 0 ? Math.max(...workItems.map(w => w.id)) + 1 : 1,
+                userId: currentUser.id,
+                name: name,
+                type: type,
+                dueDate: dueDate,
+                deliveryDate: deliveryDate,
+                status: status,
+                complexity: complexity,
+                impact: impact,
+                hoursSaved: hoursSaved,
+                description: description,
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser.id
+            };
+            
+            workItems.push(newItem);
+            saveToLocalStorage();
+            
+            showAlert(`"${name}" added successfully!`, 'success');
+            
+            // Clear form
+            document.getElementById('itemName').value = '';
+            document.getElementById('hoursSavedInput').value = '';
+            document.getElementById('itemDescription').value = '';
+            
+            updateDashboard();
+            filterWorkItems();
+            
+            // Update work item dropdown in quality tab if it exists
+            if (document.getElementById('qualityUser')) {
+                updateWorkItemDropdown();
+            }
+        }
+        
+        function addQualityAssessment() {
+            if (currentUser.role !== 'bop-manager' && currentUser.role !== 'reporting-manager') {
+                showAlert('Only managers can add quality assessments.', 'error');
+                return;
+            }
+            
+            const userId = parseInt(document.getElementById('qualityUser').value);
+            const workItemId = parseInt(document.getElementById('qualityItem').value);
+            const date = document.getElementById('qualityDate').value;
+            const accuracy = parseInt(document.getElementById('accuracyScore').value);
+            const efficiency = parseInt(document.getElementById('efficiencyScore').value);
+            const timeliness = parseInt(document.getElementById('timelinessScore').value);
+            const proactivity = parseInt(document.getElementById('proactivityScore').value);
+            const notes = document.getElementById('qualityNotes').value.trim();
+            
+            if (!workItemId || !date) {
+                showAlert('Please select a work item and date!', 'error');
+                return;
+            }
+            
+            const workItem = workItems.find(item => item.id === workItemId);
+            if (!workItem) {
+                showAlert('Selected work item not found!', 'error');
+                return;
+            }
+            
+            const avgScore = ((accuracy + efficiency + timeliness + proactivity) / 4).toFixed(1);
+            
+            const newAssessment = {
+                id: qualityData.length > 0 ? Math.max(...qualityData.map(q => q.id)) + 1 : 1,
+                userId: userId,
+                workItemId: workItemId,
+                workItemName: workItem.name,
+                date: date,
+                accuracy: accuracy,
+                efficiency: efficiency,
+                timeliness: timeliness,
+                proactivity: proactivity,
+                avgScore: parseFloat(avgScore),
+                notes: notes,
+                assessedBy: currentUser.id,
+                assessedAt: new Date().toISOString()
+            };
+            
+            qualityData.push(newAssessment);
+            saveToLocalStorage();
+            
+            showAlert('Quality assessment added!', 'success');
+            
+            // Clear form
+            document.getElementById('qualityNotes').value = '';
+            
+            updateDashboard();
+            filterQualityAssessments();
+        }
+        
+        function submitIdea() {
+            const title = document.getElementById('ideaTitle').value.trim();
+            const date = document.getElementById('ideaDate').value;
+            const category = document.getElementById('ideaCategory').value;
+            const impact = document.getElementById('ideaImpact').value;
+            const description = document.getElementById('ideaDescription').value.trim();
+            
+            if (!title || !date || !description) {
+                showAlert('Please fill in all required fields!', 'error');
+                return;
+            }
+            
+            const newIdea = {
+                id: ideasData.length > 0 ? Math.max(...ideasData.map(i => i.id)) + 1 : 1,
+                userId: currentUser.id,
+                title: title,
+                date: date,
+                category: category,
+                impact: impact,
+                description: description,
+                approvalStatus: 'Pending',
+                managerFeedback: '',
+                submittedAt: new Date().toISOString()
+            };
+            
+            ideasData.push(newIdea);
+            saveToLocalStorage();
+            
+            showAlert(`"${title}" submitted successfully!`, 'success');
+            
+            // Clear form
+            document.getElementById('ideaTitle').value = '';
+            document.getElementById('ideaDescription').value = '';
+            
+            updateDashboard();
+            filterIdeas();
+        }
+        
+        function submitFeedback() {
+            const feedbackFor = parseInt(document.getElementById('feedbackFor').value);
+            const date = document.getElementById('feedbackDate').value;
+            const type = document.getElementById('feedbackType').value;
+            const rating = parseInt(document.getElementById('feedbackRating').value);
+            const message = document.getElementById('feedbackMessage').value.trim();
+            
+            if (!feedbackFor || !date || !message) {
+                showAlert('Please fill in all required fields!', 'error');
+                return;
+            }
+            
+            const badgeType = currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager' ? 'Gold' : 'Silver';
+            const impactPercentage = currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager' ? '3%' : '1%';
+            
+            const newFeedback = {
+                id: feedbackData.length > 0 ? Math.max(...feedbackData.map(f => f.id)) + 1 : 1,
+                fromUserId: currentUser.id,
+                feedbackFor: feedbackFor,
+                date: date,
+                type: type,
+                rating: rating,
+                badgeType: badgeType,
+                impactPercentage: impactPercentage,
+                message: message,
+                givenAt: new Date().toISOString()
+            };
+            
+            feedbackData.push(newFeedback);
+            saveToLocalStorage();
+            
+            const receiver = allUsers.find(u => u.id === feedbackFor)?.name || 'User';
+            showAlert(`Feedback given to ${receiver}!`, 'success');
+            
+            // Clear form
+            document.getElementById('feedbackMessage').value = '';
+            
+            updateDashboard();
+            filterFeedback();
+        }
+        
+        // ================ TEAM MEMBER MANAGEMENT ================
+        function openAddTeamMemberModal() {
+            document.getElementById('addTeamMemberModal').style.display = 'flex';
+        }
+        
+        function closeAddTeamMemberModal() {
+            document.getElementById('addTeamMemberModal').style.display = 'none';
+            // Clear form
+            document.getElementById('newMemberName').value = '';
+            document.getElementById('newMemberEmail').value = '';
+            document.getElementById('newMemberRole').value = '';
+            document.getElementById('newMemberDepartment').value = 'Business Operations';
+            document.getElementById('newMemberPassword').value = '';
+            document.getElementById('newMemberConfirmPassword').value = '';
+            document.getElementById('newMemberStatus').value = 'active';
+        }
+        
+        function addNewTeamMember(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('newMemberName').value.trim();
+            const email = document.getElementById('newMemberEmail').value.trim();
+            const role = document.getElementById('newMemberRole').value;
+            const department = document.getElementById('newMemberDepartment').value.trim() || 'Business Operations';
+            const password = document.getElementById('newMemberPassword').value;
+            const confirmPassword = document.getElementById('newMemberConfirmPassword').value;
+            const status = document.getElementById('newMemberStatus').value;
+            
+            // Validation
+            if (!name || !email || !role || !password) {
+                showAlert('Please fill in all required fields!', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match!', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showAlert('Password must be at least 6 characters long!', 'error');
+                return;
+            }
+            
+            // Check if email already exists
+            if (allUsers.some(user => user.email === email)) {
+                showAlert('A user with this email already exists!', 'error');
+                return;
+            }
+            
+            // Generate avatar from initials
+            const nameParts = name.split(' ');
+            let avatar = '';
+            if (nameParts.length >= 2) {
+                avatar = nameParts[0].charAt(0) + nameParts[1].charAt(0);
+            } else if (nameParts.length === 1) {
+                avatar = nameParts[0].charAt(0);
+                if (nameParts[0].length > 1) {
+                    avatar += nameParts[0].charAt(1);
+                } else {
+                    avatar += nameParts[0].charAt(0);
+                }
+            }
+            avatar = avatar.toUpperCase();
+            
+            // Create new user
+            const newUser = {
+                id: allUsers.length > 0 ? Math.max(...allUsers.map(u => u.id)) + 1 : 1,
+                name: name,
+                email: email,
+                password: password,
+                role: role,
+                department: department,
+                avatar: avatar,
+                isActive: status === 'active',
+                createdAt: new Date().toISOString()
+            };
+            
+            allUsers.push(newUser);
+            saveToLocalStorage();
+            
+            showAlert(`Team member "${name}" added successfully!`, 'success');
+            
+            // Close modal and refresh UI
+            closeAddTeamMemberModal();
+            
+            // Update UI
+            updateTeamFilterDropdown();
+            filterTeamMembers();
+            
+            // If on team management tab, refresh it
+            if (document.querySelector('.tab.active').textContent.includes('Team Management')) {
+                filterTeamMembers();
+            }
+            
+            // If on team performance tab, refresh it
+            if (document.querySelector('.tab.active').textContent.includes('Team Performance')) {
+                loadTeamPerformance();
+            }
+        }
+        
+        function openEditTeamMemberModal(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            document.getElementById('editMemberId').value = userId;
+            document.getElementById('editMemberName').value = user.name;
+            document.getElementById('editMemberEmail').value = user.email;
+            document.getElementById('editMemberRole').value = user.role;
+            document.getElementById('editMemberDepartment').value = user.department;
+            document.getElementById('editMemberStatus').value = user.isActive ? 'active' : 'inactive';
+            document.getElementById('editMemberPassword').value = '';
+            
+            document.getElementById('editTeamMemberModal').style.display = 'flex';
+        }
+        
+        function closeEditTeamMemberModal() {
+            document.getElementById('editTeamMemberModal').style.display = 'none';
+        }
+        
+        function updateTeamMember(event) {
+            event.preventDefault();
+            
+            const userId = parseInt(document.getElementById('editMemberId').value);
+            const name = document.getElementById('editMemberName').value.trim();
+            const email = document.getElementById('editMemberEmail').value.trim();
+            const role = document.getElementById('editMemberRole').value;
+            const department = document.getElementById('editMemberDepartment').value.trim();
+            const status = document.getElementById('editMemberStatus').value;
+            const newPassword = document.getElementById('editMemberPassword').value;
+            
+            // Find user index
+            const userIndex = allUsers.findIndex(u => u.id === userId);
+            if (userIndex === -1) {
+                showAlert('User not found!', 'error');
+                return;
+            }
+            
+            // Check if email already exists (excluding current user)
+            if (allUsers.some(user => user.email === email && user.id !== userId)) {
+                showAlert('A user with this email already exists!', 'error');
+                return;
+            }
+            
+            // Update user
+            allUsers[userIndex].name = name;
+            allUsers[userIndex].email = email;
+            allUsers[userIndex].role = role;
+            allUsers[userIndex].department = department;
+            allUsers[userIndex].isActive = status === 'active';
+            
+            // Update password if provided
+            if (newPassword) {
+                if (newPassword.length < 6) {
+                    showAlert('Password must be at least 6 characters long!', 'error');
+                    return;
+                }
+                allUsers[userIndex].password = newPassword;
+            }
+            
+            // Update avatar if name changed
+            const nameParts = name.split(' ');
+            let avatar = '';
+            if (nameParts.length >= 2) {
+                avatar = nameParts[0].charAt(0) + nameParts[1].charAt(0);
+            } else if (nameParts.length === 1) {
+                avatar = nameParts[0].charAt(0);
+                if (nameParts[0].length > 1) {
+                    avatar += nameParts[0].charAt(1);
+                } else {
+                    avatar += nameParts[0].charAt(0);
+                }
+            }
+            allUsers[userIndex].avatar = avatar.toUpperCase();
+            
+            saveToLocalStorage();
+            
+            showAlert(`Team member "${name}" updated successfully!`, 'success');
+            
+            // Close modal and refresh UI
+            closeEditTeamMemberModal();
+            
+            // Update UI
+            updateTeamFilterDropdown();
+            filterTeamMembers();
+            
+            // If on team performance tab, refresh it
+            if (document.querySelector('.tab.active').textContent.includes('Team Performance')) {
+                loadTeamPerformance();
+            }
+            
+            // If current user edited themselves, update UI
+            if (currentUser.id === userId) {
+                currentUser = allUsers[userIndex];
+                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+                updateUserInterface();
+            }
+        }
+        
+        function deactivateTeamMember(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            if (confirm(`Are you sure you want to ${user.isActive ? 'deactivate' : 'activate'} ${user.name}?`)) {
+                const userIndex = allUsers.findIndex(u => u.id === userId);
+                allUsers[userIndex].isActive = !user.isActive;
+                saveToLocalStorage();
+                
+                showAlert(`Team member ${user.name} ${user.isActive ? 'activated' : 'deactivated'} successfully!`, 'success');
+                
+                // Refresh UI
+                filterTeamMembers();
+                updateTeamFilterDropdown();
+                
+                // If on team performance tab, refresh it
+                if (document.querySelector('.tab.active').textContent.includes('Team Performance')) {
+                    loadTeamPerformance();
+                }
+            }
+        }
+        
+        function deleteTeamMember(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            // Prevent deleting the current user
+            if (userId === currentUser.id) {
+                showAlert('You cannot delete your own account!', 'error');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to permanently delete ${user.name}? This action cannot be undone.`)) {
+                // Remove user
+                allUsers = allUsers.filter(u => u.id !== userId);
+                
+                // Remove user's data
+                workItems = workItems.filter(item => item.userId !== userId);
+                qualityData = qualityData.filter(q => q.userId !== userId);
+                ideasData = ideasData.filter(i => i.userId !== userId);
+                feedbackData = feedbackData.filter(f => f.fromUserId !== userId && f.feedbackFor !== userId);
+                
+                saveToLocalStorage();
+                
+                showAlert(`Team member ${user.name} deleted successfully!`, 'success');
+                
+                // Refresh UI
+                filterTeamMembers();
+                updateTeamFilterDropdown();
+                
+                // If on team performance tab, refresh it
+                if (document.querySelector('.tab.active').textContent.includes('Team Performance')) {
+                    loadTeamPerformance();
+                }
+            }
+        }
+        
+        function filterTeamMembers() {
+            const tbody = document.getElementById('teamMembersTableBody');
+            const emptyState = document.getElementById('teamManagementEmpty');
+            const table = document.getElementById('teamMembersTable');
+            
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const roleFilter = document.getElementById('teamMemberFilterRole')?.value || 'all';
+            const statusFilter = document.getElementById('teamMemberFilterStatus')?.value || 'all';
+            
+            let filteredMembers = allUsers;
+            
+            // Apply role filter
+            if (roleFilter !== 'all') {
+                filteredMembers = filteredMembers.filter(user => user.role === roleFilter);
+            }
+            
+            // Apply status filter
+            if (statusFilter !== 'all') {
+                const isActive = statusFilter === 'active';
+                filteredMembers = filteredMembers.filter(user => user.isActive === isActive);
+            }
+            
+            if (filteredMembers.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            // Sort by name
+            filteredMembers.sort((a, b) => a.name.localeCompare(b.name));
+            
+            filteredMembers.forEach(user => {
+                const row = document.createElement('tr');
+                
+                // Format role display
+                let roleDisplay = '';
+                switch(user.role) {
+                    case 'bop-manager':
+                        roleDisplay = 'BOP Manager';
+                        break;
+                    case 'bop-executive':
+                        roleDisplay = 'BOP Executive';
+                        break;
+                    case 'reporting-manager':
+                        roleDisplay = 'Reporting Manager';
+                        break;
+                }
+                
+                // Format join date
+                const joinDate = user.createdAt ? new Date(user.createdAt) : new Date();
+                const formattedDate = joinDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                row.innerHTML = `
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: ${user.isActive ? '#1e3c72' : '#ccc'}; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">${user.avatar}</div>
+                            <div>
+                                <strong>${user.name}</strong>
+                                ${user.id === currentUser.id ? '<span style="font-size: 11px; background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 10px; margin-left: 8px;">You</span>' : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td><span class="role-badge ${user.role}">${roleDisplay}</span></td>
+                    <td>${user.department || 'Business Operations'}</td>
+                    <td>
+                        <span class="status-badge ${user.isActive ? 'status-approved' : 'status-rejected'}">
+                            ${user.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <button class="btn btn-edit btn-small" onclick="openEditTeamMemberModal(${user.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn ${user.isActive ? 'btn-warning' : 'btn-success'} btn-small" onclick="deactivateTeamMember(${user.id})" title="${user.isActive ? 'Deactivate' : 'Activate'}">
+                            <i class="fas ${user.isActive ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                        </button>
+                        ${user.id !== currentUser.id ? `
+                        <button class="btn btn-danger btn-small" onclick="deleteTeamMember(${user.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // ================ FILTER FUNCTIONS ================
+        function filterWorkItems() {
+            const tbody = document.getElementById('quantityTableBody');
+            const emptyState = document.getElementById('quantityEmpty');
+            const table = document.getElementById('quantityTable');
+            
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const typeFilter = document.getElementById('filterType')?.value || 'all';
+            const statusFilter = document.getElementById('filterStatus')?.value || 'all';
+            
+            // Determine which user's work items to show
+            let targetUserId = currentUser.id;
+            let filteredItems = [];
+            
+            // Managers can see filtered data, executives only see their own
+            if (currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager') {
+                // If filtering by team member, use that ID, otherwise show current user's data
+                targetUserId = selectedMemberId !== 'all' ? parseInt(selectedMemberId) : currentUser.id;
+                filteredItems = workItems.filter(item => item.userId === targetUserId);
+            } else {
+                // Executives can only see their own work items
+                filteredItems = workItems.filter(item => item.userId === currentUser.id);
+            }
+            
+            // Apply type filter
+            if (typeFilter !== 'all') {
+                filteredItems = filteredItems.filter(item => item.type === typeFilter);
+            }
+            
+            // Apply status filter
+            if (statusFilter !== 'all') {
+                filteredItems = filteredItems.filter(item => item.status === statusFilter);
+            }
+            
+            if (filteredItems.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            filteredItems.forEach(item => {
+                const row = document.createElement('tr');
+                
+                let statusClass = 'status-badge ';
+                if (item.status === 'On Time') statusClass += 'status-approved';
+                else if (item.status === 'Completed Early') statusClass += 'status-approved';
+                else statusClass += 'status-rejected';
+                
+                row.innerHTML = `
+                    <td><strong>${item.name}</strong><br><small>${item.description ? item.description.substring(0, 50) + '...' : 'No description'}</small></td>
+                    <td>${item.type}</td>
+                    <td>${formatDate(item.dueDate)}</td>
+                    <td>${formatDate(item.deliveryDate)}</td>
+                    <td><span class="${statusClass}">${item.status}</span></td>
+                    <td>${item.complexity}</td>
+                    <td>${item.impact}</td>
+                    <td>${item.hoursSaved > 0 ? item.hoursSaved + ' hrs' : '-'}</td>
+                    <td>
+                        ${item.userId === currentUser.id ? `
+                        <button class="btn btn-danger btn-small" onclick="deleteWorkItem(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function filterQualityAssessments() {
+            const tbody = document.getElementById('qualityTableBody');
+            const emptyState = document.getElementById('qualityEmpty');
+            const table = document.getElementById('qualityTable');
+            
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const userFilter = document.getElementById('qualityFilterUser')?.value || 'all';
+            const timeFilter = document.getElementById('qualityFilterTime')?.value || 'all';
+            
+            let filteredAssessments = qualityData;
+            
+            // Apply user filter based on role
+            if (currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager') {
+                if (userFilter !== 'all') {
+                    filteredAssessments = filteredAssessments.filter(q => q.userId === parseInt(userFilter));
+                }
+            } else {
+                // Executives only see assessments of THEIR OWN work
+                filteredAssessments = filteredAssessments.filter(q => q.userId === currentUser.id);
+            }
+            
+            // Apply time filter
+            if (timeFilter !== 'all') {
+                const now = new Date();
+                let cutoffDate = new Date();
+                
+                if (timeFilter === 'month') {
+                    cutoffDate.setMonth(now.getMonth() - 1);
+                } else if (timeFilter === 'quarter') {
+                    cutoffDate.setMonth(now.getMonth() - 3);
+                }
+                
+                filteredAssessments = filteredAssessments.filter(q => new Date(q.date) >= cutoffDate);
+            }
+            
+            if (filteredAssessments.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            const isManager = currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager';
+            
+            filteredAssessments.forEach(assessment => {
+                const row = document.createElement('tr');
+                const user = allUsers.find(u => u.id === assessment.userId);
+                
+                // Create star ratings
+                const createStars = (score) => {
+                    let stars = '';
+                    const filledStars = Math.round(score / 2);
+                    for (let i = 1; i <= 5; i++) {
+                        stars += i <= filledStars ? 
+                            '<i class="fas fa-star" style="color: #ffc107; font-size: 12px;"></i>' : 
+                            '<i class="far fa-star" style="color: #ddd; font-size: 12px;"></i>';
+                    }
+                    return stars;
+                };
+                
+                row.innerHTML = `
+                    ${isManager ? `<td>${user ? user.name : 'Unknown'}</td>` : ''}
+                    <td><strong>${assessment.workItemName}</strong></td>
+                    <td>${formatDate(assessment.date)}</td>
+                    <td>${createStars(assessment.accuracy)} (${assessment.accuracy})</td>
+                    <td>${createStars(assessment.efficiency)} (${assessment.efficiency})</td>
+                    <td>${createStars(assessment.timeliness)} (${assessment.timeliness})</td>
+                    <td>${createStars(assessment.proactivity)} (${assessment.proactivity})</td>
+                    <td><strong>${assessment.avgScore}/10</strong></td>
+                    <td>
+                        ${isManager ? `
+                        <button class="btn btn-danger btn-small" onclick="deleteQualityAssessment(${assessment.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function filterIdeas() {
+            const tbody = document.getElementById('ideasTableBody');
+            const emptyState = document.getElementById('ideasEmpty');
+            const table = document.getElementById('ideasTable');
+            
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const statusFilter = document.getElementById('ideaFilterStatus')?.value || 'all';
+            const userFilter = document.getElementById('ideaFilterUser')?.value || 'all';
+            const categoryFilter = document.getElementById('ideaFilterCategory')?.value || 'all';
+            
+            let filteredIdeas = ideasData;
+            
+            // Apply user filter based on role
+            if (currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager') {
+                if (userFilter !== 'all') {
+                    filteredIdeas = filteredIdeas.filter(idea => idea.userId === parseInt(userFilter));
+                }
+            } else {
+                // Executives only see their own ideas
+                filteredIdeas = filteredIdeas.filter(idea => idea.userId === currentUser.id);
+            }
+            
+            // Apply filters
+            if (statusFilter !== 'all') {
+                filteredIdeas = filteredIdeas.filter(idea => idea.approvalStatus === statusFilter);
+            }
+            
+            if (categoryFilter !== 'all') {
+                filteredIdeas = filteredIdeas.filter(idea => idea.category === categoryFilter);
+            }
+            
+            if (filteredIdeas.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            const isManager = currentUser.role === 'bop-manager' || currentUser.role === 'reporting-manager';
+            
+            filteredIdeas.forEach(idea => {
+                const row = document.createElement('tr');
+                const user = allUsers.find(u => u.id === idea.userId);
+                
+                let statusColor = '#6c757d';
+                if (idea.approvalStatus === 'Approved') statusColor = '#28a745';
+                if (idea.approvalStatus === 'Implemented') statusColor = '#17a2b8';
+                if (idea.approvalStatus === 'Rejected') statusColor = '#dc3545';
+                
+                row.innerHTML = `
+                    ${isManager ? `<td>${user ? user.name : 'Unknown'}</td>` : ''}
+                    <td><strong>${idea.title}</strong><br><small>${idea.description ? idea.description.substring(0, 60) + '...' : 'No description'}</small></td>
+                    <td>${formatDate(idea.date)}</td>
+                    <td>${idea.category}</td>
+                    <td>${idea.impact}</td>
+                    <td><span style="color: ${statusColor}; font-weight: 600;">${idea.approvalStatus}</span></td>
+                    <td>${idea.managerFeedback ? idea.managerFeedback.substring(0, 30) + (idea.managerFeedback.length > 30 ? '...' : '') : '-'}</td>
+                    <td>
+                        ${idea.userId === currentUser.id ? `
+                        <button class="btn btn-danger btn-small" onclick="deleteIdea(${idea.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                        ${isManager ? `
+                        <button class="btn btn-edit btn-small" onclick="editIdea(${idea.id})" title="Edit Status">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="deleteIdea(${idea.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function filterFeedback() {
+            const tbody = document.getElementById('feedbackTableBody');
+            const emptyState = document.getElementById('feedbackEmpty');
+            const table = document.getElementById('feedbackTable');
+            
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const typeFilter = document.getElementById('feedbackFilterType')?.value || 'all';
+            const viewFilter = document.getElementById('feedbackFilterView')?.value || 'received';
+            
+            let filteredFeedback = feedbackData;
+            
+            // Apply view filter
+            if (viewFilter === 'received') {
+                filteredFeedback = filteredFeedback.filter(f => f.feedbackFor === currentUser.id);
+            } else {
+                filteredFeedback = filteredFeedback.filter(f => f.fromUserId === currentUser.id);
+            }
+            
+            // Apply type filter
+            if (typeFilter !== 'all') {
+                filteredFeedback = filteredFeedback.filter(f => f.type === typeFilter);
+            }
+            
+            if (filteredFeedback.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            filteredFeedback.forEach(feedback => {
+                const row = document.createElement('tr');
+                const fromUser = allUsers.find(u => u.id === feedback.fromUserId);
+                const toUser = allUsers.find(u => u.id === feedback.feedbackFor);
+                
+                // Create star rating
+                let stars = '';
+                for (let i = 1; i <= 5; i++) {
+                    stars += i <= feedback.rating ? 
+                        '<i class="fas fa-star" style="color: #ffc107;"></i>' : 
+                        '<i class="far fa-star" style="color: #ddd;"></i>';
+                }
+                
+                const badgeClass = feedback.badgeType === 'Gold' ? 'badge-gold' : 'badge-silver';
+                
+                row.innerHTML = `
+                    <td>${feedback.fromUserId === currentUser.id ? 
+                        `<strong>To:</strong> ${toUser ? toUser.name : 'Unknown'}` : 
+                        `<strong>From:</strong> ${fromUser ? fromUser.name : 'Unknown'}`}</td>
+                    <td>${formatDate(feedback.date)}</td>
+                    <td>${feedback.type}</td>
+                    <td>${stars} (${feedback.rating}/5)</td>
+                    <td><span class="${badgeClass}">${feedback.badgeType} Badge</span></td>
+                    <td>${feedback.message.substring(0, 50)}...</td>
+                    <td>
+                        ${feedback.fromUserId === currentUser.id ? `
+                        <button class="btn btn-danger btn-small" onclick="deleteFeedback(${feedback.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // ================ TEAM PERFORMANCE ================
+        function loadTeamPerformance() {
+            const grid = document.getElementById('teamMembersGrid');
+            const emptyState = document.getElementById('teamEmpty');
+            
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            // Get BOP team members (managers can see everyone except other managers)
+            const teamMembers = allUsers.filter(user => 
+                user.isActive && 
+                (currentUser.role === 'reporting-manager' || user.role !== 'bop-manager') &&
+                user.id !== currentUser.id
+            );
+            
+            if (teamMembers.length === 0) {
+                if (emptyState) emptyState.style.display = 'block';
+                return;
+            }
+            
+            if (emptyState) emptyState.style.display = 'none';
+            
+            // Calculate team statistics
+            let totalScore = 0;
+            let topPerformer = null;
+            let topScore = 0;
+            let totalWorkItems = 0;
+            
+            teamMembers.forEach(member => {
+                const performance = calculateUserPerformance(member.id);
+                totalScore += parseFloat(performance.overallScore);
+                totalWorkItems += performance.totalItems;
+                
+                if (parseFloat(performance.overallScore) > topScore) {
+                    topScore = parseFloat(performance.overallScore);
+                    topPerformer = member.name;
+                }
+                
+                // Create team member card
+                const card = document.createElement('div');
+                card.className = 'team-member-card';
+                card.onclick = () => viewMemberDetails(member.id);
+                
+                let roleDisplay = '';
+                switch(member.role) {
+                    case 'bop-executive': roleDisplay = 'BOP Executive'; break;
+                    case 'reporting-manager': roleDisplay = 'Reporting Manager'; break;
+                    case 'bop-manager': roleDisplay = 'BOP Manager'; break;
+                }
+                
+                card.innerHTML = `
+                    <div class="team-member-header">
+                        <div class="team-member-avatar">${member.avatar}</div>
+                        <div class="team-member-info">
+                            <h3>${member.name}</h3>
+                            <div class="member-role">${roleDisplay}</div>
+                            <small>${member.department}</small>
+                        </div>
+                    </div>
+                    <div class="team-member-score">${performance.overallScore}/5.0</div>
+                    <div class="team-member-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${performance.totalItems}</div>
+                            <div class="stat-label">Work Items</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${performance.approvedIdeas}</div>
+                            <div class="stat-label">Ideas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${performance.totalFeedback}</div>
+                            <div class="stat-label">Feedback</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${performance.goldBadges + performance.silverBadges}</div>
+                            <div class="stat-label">Badges</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-small" style="width: 100%; margin-top: 15px;" onclick="event.stopPropagation(); viewMemberDetails(${member.id})">
+                        <i class="fas fa-chart-bar"></i> View Details
+                    </button>
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            // Update team summary
+            const avgScore = (totalScore / teamMembers.length).toFixed(1);
+            document.getElementById('teamAvgScore').textContent = avgScore;
+            document.getElementById('teamTotalMembers').textContent = teamMembers.length;
+            document.getElementById('teamTopPerformer').textContent = topPerformer || '-';
+            document.getElementById('teamCompletedItems').textContent = totalWorkItems;
+        }
+        
+        function viewMemberDetails(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            const performance = calculateUserPerformance(userId);
+            const userWorkItems = workItems.filter(item => item.userId === userId);
+            const userIdeas = ideasData.filter(item => item.userId === userId);
+            const userFeedback = feedbackData.filter(item => item.feedbackFor === userId);
+            
+            const modal = document.getElementById('memberDetailsModal');
+            const content = document.getElementById('memberDetailsContent');
+            
+            let roleDisplay = '';
+            switch(user.role) {
+                case 'bop-executive': roleDisplay = 'BOP Executive'; break;
+                case 'reporting-manager': roleDisplay = 'Reporting Manager'; break;
+                case 'bop-manager': roleDisplay = 'BOP Manager'; break;
+            }
+            
+            content.innerHTML = `
+                <div class="team-member-header" style="margin-bottom: 20px;">
+                    <div class="team-member-avatar">${user.avatar}</div>
+                    <div class="team-member-info">
+                        <h3>${user.name}</h3>
+                        <div class="member-role">${roleDisplay} • ${user.department}</div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <span class="stat-item">
+                                <div class="stat-value">${performance.overallScore}</div>
+                                <div class="stat-label">Score</div>
+                            </span>
+                            <span class="stat-item">
+                                <div class="stat-value">${userWorkItems.length}</div>
+                                <div class="stat-label">Work Items</div>
+                            </span>
+                            <span class="stat-item">
+                                <div class="stat-value">${userFeedback.length}</div>
+                                <div class="stat-label">Feedback</div>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4><i class="fas fa-chart-bar"></i> Quantity</h4>
+                        <div class="measure-progress" style="margin-top: 10px;">
+                            <div class="measure-fill" style="width: ${performance.quantityScore}%"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 5px;">${Math.round(performance.quantityScore)}%</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <h4><i class="fas fa-check-double"></i> Quality</h4>
+                        <div class="measure-progress" style="margin-top: 10px;">
+                            <div class="measure-fill" style="width: ${performance.qualityScore}%"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 5px;">${Math.round(performance.qualityScore)}%</div>
+                    </div>
+                </div>
+                
+                <h4><i class="fas fa-list-alt"></i> Recent Work Items</h4>
+                <div style="max-height: 200px; overflow-y: auto; margin-top: 10px;">
+                    ${userWorkItems.slice(0, 5).map(item => `
+                        <div style="background: white; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #eee;">
+                            <strong>${item.name}</strong><br>
+                            <small>${item.type} • ${item.status} • Due: ${formatDate(item.dueDate)}</small>
+                        </div>
+                    `).join('')}
+                    ${userWorkItems.length === 0 ? '<p style="color: #666; text-align: center;">No work items</p>' : ''}
+                </div>
+                
+                <h4 style="margin-top: 20px;"><i class="fas fa-lightbulb"></i> Ideas Status</h4>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <span class="stat-item">
+                        <div class="stat-value">${userIdeas.length}</div>
+                        <div class="stat-label">Total</div>
+                    </span>
+                    <span class="stat-item">
+                        <div class="stat-value">${userIdeas.filter(i => i.approvalStatus === 'Approved' || i.approvalStatus === 'Implemented').length}</div>
+                        <div class="stat-label">Approved</div>
+                    </span>
+                    <span class="stat-item">
+                        <div class="stat-value">${userIdeas.filter(i => i.approvalStatus === 'Pending').length}</div>
+                        <div class="stat-label">Pending</div>
+                    </span>
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="viewFullPerformance(${userId})">
+                    <i class="fas fa-external-link-alt"></i> View Full Performance Report
+                </button>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        function viewFullPerformance(userId) {
+            // For now, just show an alert. Could be expanded to show detailed report.
+            const user = allUsers.find(u => u.id === userId);
+            alert(`Full performance report for ${user?.name} would open here.\n\nThis could include:\n- Detailed metrics\n- Trend analysis\n- Comparative analysis\n- Recommendations`);
+        }
+        
+        // ================ DASHBOARD FILTERING ================
+        function filterDashboardByMember() {
+            const memberFilter = document.getElementById('memberFilter');
+            const timeFilter = document.getElementById('timeFilter');
+            
+            selectedMemberId = memberFilter.value;
+            
+            // Update dashboard with filtered data
+            updateDashboard();
+            
+            // Update the current tab content
+            loadTabContent();
+        }
+        
+        function resetDashboardFilter() {
+            selectedMemberId = 'all';
+            document.getElementById('memberFilter').value = 'all';
+            document.getElementById('timeFilter').value = 'all';
+            updateDashboard();
+        }
+        
+        // ================ DELETE OPERATIONS ================
+        function deleteWorkItem(id) {
+            if (confirm('Are you sure you want to delete this work item?')) {
+                workItems = workItems.filter(item => item.id !== id);
+                // Also delete related quality assessments
+                qualityData = qualityData.filter(q => q.workItemId !== id);
+                saveToLocalStorage();
+                updateDashboard();
+                filterWorkItems();
+                showAlert('Work item deleted!', 'success');
+                
+                // Update work item dropdown if it exists
+                if (document.getElementById('qualityUser')) {
+                    updateWorkItemDropdown();
+                }
+            }
+        }
+        
+        function deleteQualityAssessment(id) {
+            if (confirm('Delete this quality assessment?')) {
+                qualityData = qualityData.filter(assessment => assessment.id !== id);
+                saveToLocalStorage();
+                updateDashboard();
+                filterQualityAssessments();
+                showAlert('Assessment deleted!', 'success');
+            }
+        }
+        
+        function deleteIdea(id) {
+            if (confirm('Delete this idea?')) {
+                ideasData = ideasData.filter(idea => idea.id !== id);
+                saveToLocalStorage();
+                updateDashboard();
+                filterIdeas();
+                showAlert('Idea deleted!', 'success');
+            }
+        }
+        
+        function deleteFeedback(id) {
+            if (confirm('Delete this feedback?')) {
+                feedbackData = feedbackData.filter(feedback => feedback.id !== id);
+                saveToLocalStorage();
+                updateDashboard();
+                filterFeedback();
+                showAlert('Feedback deleted!', 'success');
+            }
+        }
+        
+        // ================ WORK ITEM DROPDOWN FIX ================
+        function updateWorkItemDropdown() {
+            const userId = parseInt(document.getElementById('qualityUser').value);
+            const dropdown = document.getElementById('qualityItem');
+            
+            if (!dropdown) return;
+            
+            dropdown.innerHTML = '<option value="">Select a work item...</option>';
+            
+            // Get work items for the selected user
+            const userWorkItems = workItems.filter(item => item.userId === userId);
+            
+            if (userWorkItems.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No work items found for this user';
+                option.disabled = true;
+                dropdown.appendChild(option);
+                return;
+            }
+            
+            userWorkItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.name} (${item.type} - Due: ${formatDate(item.dueDate)})`;
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // ================ IDEA MANAGEMENT ================
+        function editIdea(ideaId) {
+            const idea = ideasData.find(i => i.id === ideaId);
+            if (!idea) return;
+            
+            const user = allUsers.find(u => u.id === idea.userId);
+            
+            document.getElementById('editIdeaId').value = ideaId;
+            document.getElementById('editIdeaTitle').value = idea.title;
+            document.getElementById('editIdeaAuthor').value = user ? user.name : 'Unknown';
+            document.getElementById('editIdeaStatus').value = idea.approvalStatus;
+            document.getElementById('editIdeaFeedback').value = idea.managerFeedback || '';
+            
+            document.getElementById('editIdeaModal').style.display = 'flex';
+        }
+        
+        function closeEditIdeaModal() {
+            document.getElementById('editIdeaModal').style.display = 'none';
+        }
+        
+        function updateIdeaStatus(event) {
+            event.preventDefault();
+            
+            const ideaId = parseInt(document.getElementById('editIdeaId').value);
+            const status = document.getElementById('editIdeaStatus').value;
+            const feedback = document.getElementById('editIdeaFeedback').value.trim();
+            
+            const ideaIndex = ideasData.findIndex(i => i.id === ideaId);
+            if (ideaIndex === -1) return;
+            
+            ideasData[ideaIndex].approvalStatus = status;
+            ideasData[ideaIndex].managerFeedback = feedback;
+            ideasData[ideaIndex].reviewedAt = new Date().toISOString();
+            ideasData[ideaIndex].reviewedBy = currentUser.id;
+            
+            saveToLocalStorage();
+            
+            closeEditIdeaModal();
+            updateDashboard();
+            filterIdeas();
+            
+            showAlert(`Idea status updated to "${status}"`, 'success');
+        }
+        
+        function closeMemberDetailsModal() {
+            document.getElementById('memberDetailsModal').style.display = 'none';
+        }
+        
+        // ================ UTILITY FUNCTIONS ================
+        function setupQualitySliders() {
+            const sliders = ['accuracyScore', 'efficiencyScore', 'timelinessScore', 'proactivityScore'];
+            sliders.forEach(sliderId => {
+                const slider = document.getElementById(sliderId);
+                const display = document.getElementById(sliderId + 'ValueDisplay');
+                
+                if (slider && display) {
+                    // Set initial value
+                    display.textContent = `${slider.value}/10`;
+                    
+                    // Update on change
+                    slider.addEventListener('input', function() {
+                        display.textContent = `${this.value}/10`;
+                    });
+                }
+            });
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        function showAlert(message, type = 'info') {
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+                min-width: 250px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            
+            // Set background color based on type
+            switch(type) {
+                case 'success':
+                    alert.style.backgroundColor = '#4CAF50';
+                    alert.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 10px;"></i> ${message}`;
+                    break;
+                case 'error':
+                    alert.style.backgroundColor = '#F44336';
+                    alert.innerHTML = `<i class="fas fa-exclamation-circle" style="margin-right: 10px;"></i> ${message}`;
+                    break;
+                case 'warning':
+                    alert.style.backgroundColor = '#FF9800';
+                    alert.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right: 10px;"></i> ${message}`;
+                    break;
+                default:
+                    alert.style.backgroundColor = '#2196F3';
+                    alert.innerHTML = `<i class="fas fa-info-circle" style="margin-right: 10px;"></i> ${message}`;
+            }
+            
+            // Add CSS for animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(alert);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 3000);
+        }
+        
+        function showSampleAccounts() {
+            const message = `
+Available sample accounts:
+--------------------------------
+1. Manager Account
+   Email: ali@company.com
+   Password: manager123
+   Role: BOP Manager
+   
+2. Executive Account  
+   Email: fatima@company.com
+   Password: executive123
+   Role: BOP Executive
+   
+3. Reporting Manager Account
+   Email: mohammed@company.com
+   Password: reporting123
+   Role: Reporting Manager
+   
+4. Executive Account 2
+   Email: sarah@company.com
+   Password: executive123
+   Role: BOP Executive
+--------------------------------
+Each role has different permissions and views in the dashboard.`;
+            
+            alert(message);
+        }
+        
+        // ================ ORIGINAL EXPORT/IMPORT FUNCTIONS ================
+        function exportAllData() {
+            const allData = {
+                app: "BOP Performance Dashboard",
+                version: "1.0",
+                exportedAt: new Date().toISOString(),
+                data: {
+                    users: allUsers,
+                    workItems: workItems,
+                    qualityData: qualityData,
+                    ideasData: ideasData,
+                    feedbackData: feedbackData
+                }
+            };
+            
+            const jsonData = JSON.stringify(allData, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bop-data-${new Date().toISOString().split('T')[0]}.json`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert('✅ Data exported! Save this file to share.', 'success');
+        }
+        
+        function importAllData() {
+            document.getElementById('dataImportFile').click();
+        }
+        
+        function setupImportHandler() {
+            const fileInput = document.getElementById('dataImportFile');
+            fileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        
+                        if (!importedData.app || !importedData.app.includes('BOP Performance Dashboard')) {
+                            showAlert('❌ Invalid file format', 'error');
+                            return;
+                        }
+                        
+                        if (confirm('⚠️ Importing will replace ALL current data. Continue?')) {
+                            if (importedData.data) {
+                                allUsers = importedData.data.users || [];
+                                workItems = importedData.data.workItems || [];
+                                qualityData = importedData.data.qualityData || [];
+                                ideasData = importedData.data.ideasData || [];
+                                feedbackData = importedData.data.feedbackData || [];
+                            } else {
+                                allUsers = importedData.users || [];
+                                workItems = importedData.workItems || [];
+                                qualityData = importedData.qualityData || [];
+                                ideasData = importedData.ideasData || [];
+                                feedbackData = importedData.feedbackData || [];
+                            }
+                            
+                            saveToLocalStorage();
+                            updateDashboard();
+                            showAlert('✅ Data imported!', 'success');
+                        }
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        showAlert('❌ Error importing data', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+                event.target.value = '';
+            });
+        }
+        
+        // ================ GITHUB UI FUNCTIONS ================
+        function showGithubConfigModal() {
+            const modal = document.getElementById('githubConfigModal');
+            modal.style.display = 'flex';
+            
+            // Fill form with current config
+            document.getElementById('githubToken').value = githubConfig.token || '';
+            document.getElementById('gistId').value = githubConfig.gistId || '';
+            document.getElementById('syncFrequency').value = githubConfig.syncFrequency || 'manual';
+        }
+        
+        function closeGithubConfig() {
+            document.getElementById('githubConfigModal').style.display = 'none';
+            document.getElementById('configStatus').style.display = 'none';
+        }
+        
+        function showGithubSetupGuide() {
+            alert(`🚀 FREE GITHUB CLOUD SYNC SETUP
+
+This feature lets ALL laptops sync data automatically using GitHub (100% free).
+
+STEP 1: Create GitHub Token
+1. Go to: https://github.com/settings/tokens
+2. Click "Generate new token" → "Generate new token (classic)"
+3. Name: "BOP Dashboard Sync"
+4. Expiration: 90 days (recommended)
+5. Select ONLY: "gist" scope ✓
+6. Click "Generate token"
+7. COPY the token (starts with ghp_)
+
+STEP 2: Configure Dashboard
+1. Login to dashboard
+2. Click gear icon (⚙️) top-right
+3. Paste your token
+4. Click "Save Configuration"
+
+✅ DONE! Now use "Save to Cloud" and "Load from Cloud" buttons.
+
+💰 COST: 100% FREE forever
+🔒 PRIVATE: Your data is private (not public)
+🔄 AUTO-SYNC: Optional auto-sync every 5/15/60 minutes`);
+        }
+        
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const githubConfigModal = document.getElementById('githubConfigModal');
+            if (event.target === githubConfigModal) {
+                closeGithubConfig();
+            }
+            
+            // Your existing modal close handlers
+            const editIdeaModal = document.getElementById('editIdeaModal');
+            const memberDetailsModal = document.getElementById('memberDetailsModal');
+            const addTeamMemberModal = document.getElementById('addTeamMemberModal');
+            const editTeamMemberModal = document.getElementById('editTeamMemberModal');
+            
+            if (event.target === editIdeaModal) {
+                closeEditIdeaModal();
+            }
+            
+            if (event.target === memberDetailsModal) {
+                closeMemberDetailsModal();
+            }
+            
+            if (event.target === addTeamMemberModal) {
+                closeAddTeamMemberModal();
+            }
+            
+            if (event.target === editTeamMemberModal) {
+                closeEditTeamMemberModal();
+            }
+        };
+        
+        // Initialize date inputs with current date
+        function initializeDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                if (!input.value) {
+                    input.value = today;
+                }
+            });
+        }
+        
+        // Call initialization after DOM loads
+        setTimeout(initializeDates, 100);
+    </script>
+</body>
+</html>
